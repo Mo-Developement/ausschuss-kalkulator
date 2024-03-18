@@ -33,11 +33,3 @@ export default {
     <button @click="addItem()">neue Partei</button>
   </div>
 </template>
-
-<style>
-main {
-  display: block;
-  /* flex-direction: column; */
-  /* gap: 20px; */
-}
-</style>
