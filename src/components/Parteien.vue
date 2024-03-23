@@ -158,13 +158,13 @@ export default {
   <tbody>
     <tr v-for="entry in data.parteien" :key="entry.id">
       <td>
-        <DataBar :current="entry.hN.sitze" :max="data.helper.maxHNSitze" />
+        <DataBar :current="entry.hN.sitze" :max="data.helper.hn.maxSitze" />
       </td>
       <td>
-        <DataBar :current="entry.hN.pattaufloesung" :max="data.helper.maxHNPattaufloesung" :decimals="2" />
+        <DataBar :current="entry.hN.pattaufloesung" :max="data.helper.hn.maxPattaufloesung" :decimals="2" />
       </td>
       <td v-show="this.style.hn.details">
-        <DataBar :current="entry.hN.sitzeGanz" :max="data.helper.maxHNSitzeGanz" />
+        <DataBar :current="entry.hN.sitzeGanz" :max="data.helper.hn.maxSitzeGanz" />
       </td>
       <td class="right" v-show="this.style.hn.details">
         {{ entry.hN.sitzeRest.toFixed(4) }}
@@ -191,14 +191,14 @@ export default {
   </tbody>
   <tfoot>
     <tr class="bold">
-      <td>{{ data.ergebnisse.summeHNSitze }}</td>
-      <td>{{ data.ergebnisse.summeHNPattaufloesung }}</td>
-      <td v-show="this.style.hn.details">{{ data.ergebnisse.summeHNSitzeGanz }}</td>
-      <td v-show="this.style.hn.details">{{ data.ergebnisse.summeHNSitzeRest }}</td>
+      <td>{{ data.ergebnisse.hn.summeSitze }}</td>
+      <td>{{ data.ergebnisse.hn.summePattaufloesung }}</td>
+      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeSitzeGanz }}</td>
+      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeSitzeRest }}</td>
       <td v-show="this.style.hn.details"></td>
-      <td v-show="this.style.hn.details">{{ data.ergebnisse.summeHNRestsitze }}</td>
-      <td v-show="this.style.hn.details">{{ data.ergebnisse.summeHNPatt }}</td>
-      <td v-show="this.style.hn.details">{{ data.ergebnisse.summeHNLosChance }}</td>
+      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeRestsitze }}</td>
+      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summePatt }}</td>
+      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeLosChance }}</td>
       <td v-show="this.style.hn.details"></td>
       <td v-show="this.style.hn.details"></td>
     </tr>
@@ -236,15 +236,15 @@ export default {
       <th>Sitze</th>
       <th>Patt Auf&shy;lösung</th>
 
-      <th class="right" v-for="(q, key) in subHeaderView(data.helper.slsQuotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="key">
+      <th class="right" v-for="(q, key) in subHeaderView(data.helper.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="key">
         :{{ q }}
       </th>
 
-      <th class="right" v-for="(q, key) in subHeaderView(data.helper.slsQuotienten, this.style.sls.details, this.style.sls.rangDetails)" :key="key">
+      <th class="right" v-for="(q, key) in subHeaderView(data.helper.sls.quotienten, this.style.sls.details, this.style.sls.rangDetails)" :key="key">
         R{{ q }}
       </th>
 
-      <th class="right" v-for="(q, key) in subHeaderView(data.helper.slsQuotienten, this.style.sls.details, this.style.sls.sitzeDetails)" :key="key">
+      <th class="right" v-for="(q, key) in subHeaderView(data.helper.sls.quotienten, this.style.sls.details, this.style.sls.sitzeDetails)" :key="key">
         SP{{ q }}
       </th>
 
@@ -258,10 +258,10 @@ export default {
   <tbody>
     <tr v-for="entry in data.parteien" :key="entry.id">
       <td>
-        <DataBar :current="entry.sls.sitzeGesamt" :max="data.helper.slsMaxSitzeGesamt" />
+        <DataBar :current="entry.sls.sitzeGesamt" :max="data.helper.sls.maxSitzeGesamt" />
       </td>
       <td>
-        <DataBar :current="entry.sls.pattaufloesung" :max="data.helper.slsMaxPattaufloesung" />
+        <DataBar :current="entry.sls.pattaufloesung" :max="data.helper.sls.maxPattaufloesung" />
       </td>
 
       <td class="right" v-for="[q, value] in dataView(entry.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="q">
@@ -295,16 +295,16 @@ export default {
   </tbody>
   <tfoot>
     <tr class="bold">
-      <td>{{ data.ergebnisse.summeSLSSitzeGesamt }}</td>
-      <td>{{ data.ergebnisse.summeSLSPattaufloesung }}</td>
+      <td>{{ data.ergebnisse.sls.summeSitzeGesamt }}</td>
+      <td>{{ data.ergebnisse.sls.summePattaufloesung }}</td>
       <td v-if="this.style.sls.details" :colspan="this.style.sls.quotientenDetails === true ? 19 : 1"></td>
       <td v-if="this.style.sls.details" :colspan="this.style.sls.rangDetails === true ? 19 : 1"></td>
       <td v-if="this.style.sls.details" :colspan="this.style.sls.sitzeDetails === true ? 19 : 1"></td>
-      <td v-if="this.style.sls.details">{{ data.ergebnisse.summeSLSPatt }}</td>
-      <td v-if="this.style.sls.details && this.style.sls.pattDetails">{{ data.ergebnisse.summeSLSLosChance }}</td>
+      <td v-if="this.style.sls.details">{{ data.ergebnisse.sls.summePatt }}</td>
+      <td v-if="this.style.sls.details && this.style.sls.pattDetails">{{ data.ergebnisse.sls.summeLosChance }}</td>
       <td v-if="this.style.sls.details && this.style.sls.pattDetails"></td>
       <td v-if="this.style.sls.details && this.style.sls.pattDetails"></td>
-      <td v-if="this.style.sls.details">{{ data.ergebnisse.summeSLSQkVerletzt }}</td>
+      <td v-if="this.style.sls.details">{{ data.ergebnisse.sls.summeQkVerletzt }}</td>
     </tr>
   </tfoot>
 </table>
