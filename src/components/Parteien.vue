@@ -1,12 +1,20 @@
 <script>
+import Button from 'primevue/button'
+import Checkbox from 'primevue/checkbox'
+import Column from 'primevue/column'
+import ColumnGroup from 'primevue/columngroup'
+import DataTable from 'primevue/datatable'
+import Row from 'primevue/row'
+
 import DataBar from "./DataBar.vue"
 
-import { data, deleteItem, startConfig } from "../store/index.js"
+import { useState } from "../store/index.js"
 
 export default {
   name: 'ParteiDaten',
   setup() {
-    return { data }
+    const { deleteItem, clear, loadDefaults, data, startConfig } = useState()
+    return { deleteItem, clear, loadDefaults, data, startConfig }
   },
   data() {
     return {
@@ -27,17 +35,11 @@ export default {
   computed: {
     summeHauptorganKorrekt() {
       return [
-        this.data.ergebnisse.summeSitzeHauptorgan == startConfig.sitzeHauptorgan ? 'correct' : 'false'
+        this.data.ergebnisse.summeSitzeHauptorgan == this.startConfig.sitzeHauptorgan ? 'correct' : 'false'
       ]
-    },
-    hnZelleEingeblendet() {
-      return {
-        'hidden': !this.style.hn.details
-      }
     },
   },
   methods: {
-    deleteItem,
     subHeaderView(dataList, parentDetails, details) {
       const end = parentDetails === true
         ? (details === true ? dataList.length : 1)
@@ -50,160 +52,342 @@ export default {
         : 0
       return new Map(Array.from(entry.entries()).slice(0, end))
     },
+    formatYesNo(value) {
+      return value === true ? "ja" : "nein"
+    },
+    formatOkNok(value) {
+      return value === true ? "OK" : "NOK"
+    },
+    formatDecimal(value, precision) {
+      return value.toFixed(precision).replace(/\./g, ",")
+    },
+    formatPercent(value) {
+      return Math.round(value * 100) + " %"
+    },
+    formatRank(value) {
+      return value + "."
+    },
   },
-  components: {
-    DataBar
-  }
+  components: { Button, Checkbox, Column, ColumnGroup, DataBar, DataTable, Row }
 }
 </script>
 
 <template>
-<table>
-  <thead>
-    <tr class="bold centered">
-      <th colspan="3">
-        Zusammensetzung Hauptorgan<br>(ohne Ausschussgemeinschaften)
-      </th>
-      <th colspan="2">
-        Info
-      </th>
-      <th colspan="4">
-        Zulässigkeit Verfahren
-      </th>
-    </tr>
-    <tr>
-      <th>Partei/<wbr>Wählergruppe</th>
-      <th>Sitze im Haupt&shy;organ</th>
-      <th>AG?</th>
-      <th>Proporz&shy;genaue Zahl Ausschuss</th>
-      <th>Sicher vertreten?</th>
-      <th>Quoten&shy;kriterium</th>
-      <th class="header-hn">H/N</th>
-      <th class="header-sls">SL/S</th>
-      <th class="header-dh">d'H</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr v-for="entry in data.parteien" :key="entry.id">
-      <td>
-        <button @click="deleteItem(entry.id)">löschen</button>
-        {{ entry.name }}
-      </td>
-      <td class="right">
-        {{ entry.sitzeHauptorgan }}
-      </td>
-      <td>
-        {{ entry.ag }}</td>
-      <td>
-        <DataBar :current="entry.proporzgenaueZahlAusschuss" :max="data.helper.maxProporzgenaueZahlAusschuss" :decimals="2" />
-      </td>
-      <td>
-        {{ entry.sicherVertreten === true ? "ja" : "nein" }}
-      </td>
-      <td class="centered">
-        {{ entry.quotenKriterium }}
-      </td>
-      <td>
-        OK
-      </td>
-      <td>
-        {{ entry.sls.qkVerletzt ? "NOK" : "OK" }}</td>
-      <td>
-        xxx
-      </td>
-    </tr>
-  </tbody>
-  <tfoot>
-    <tr class="bold">
-      <td class="left">Summe</td>
-      <td :class="summeHauptorganKorrekt">
-        {{ data.ergebnisse.summeSitzeHauptorgan }}
-      </td>
-      <td></td>
-      <td>
-        {{ data.ergebnisse.summeProporzgenaueZahlAusschuss }}
-      </td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-  </tfoot>
-</table>
+<DataTable :value="data.parteien" dataKey="id" size="small" striped-rows show-gridlines>
+  <ColumnGroup type="header">
+    <Row>
+      <Column :colspan="2">
+        <template #header>
+          <div class="centered" style="width: 100%;">
+            Zusammensetzung Hauptorgan<br>(ohne Ausschussgemeinschaften)
+          </div>
+        </template>
+      </Column>
+      <Column :colspan="3">
+        <template #header>
+          <div class="centered" style="width: 100%;">Info</div>
+        </template>
+      </Column>
+      <Column :colspan="4">
+        <template #header>
+          <div class="centered" style="width: 100%;">Zulässigkeit Verfahren</div>
+        </template>
+      </Column>
 
-<table>
-  <thead>
-    <tr class="bold centered">
-      <th colspan="2">
-        Hare/Niemeyer
-        <button @click="style.hn.details = !style.hn.details">{{ this.style.hn.details ? "-" : "+" }}</button>
-      </th>
-      <th colspan="8" v-show="this.style.hn.details">
-      </th>
-    </tr>
-    <tr>
-      <th>Sitze</th>
-      <th>Patt Auf&shy;lösung</th>
-      <th v-show="this.style.hn.details">S ganz</th>
-      <th v-show="this.style.hn.details">S Rest</th>
-      <th v-show="this.style.hn.details">Rng Rest</th>
-      <th v-show="this.style.hn.details">Rest&shy;sitz</th>
-      <th v-show="this.style.hn.details">Patt</th>
-      <th v-show="this.style.hn.details">Los Chance</th>
-      <th v-show="this.style.hn.details">Stimmen/<wbr>Gelost</th>
-      <th v-show="this.style.hn.details">Patt&shy;gewinn</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr v-for="entry in data.parteien" :key="entry.id">
-      <td>
-        <DataBar :current="entry.hN.sitze" :max="data.helper.hn.maxSitze" />
+      <!-- header hn -->
+      <Column class="hidden" />
+      <Column header="Hare/Niemeyer" :colspan="2">
+        <template #header>
+          <Checkbox v-model="this.style.hn.details" :binary="true" v-tooltip.top="'Details ein-/ausblenden'" aria-label="Details zum Hare/Niemeyer-Verfahren anzeigen" />
+        </template>
+      </Column>
+      <Column v-if="this.style.hn.details" class="th-empty-top-right-corner" :colspan="8" />
+
+      <!-- header sls -->
+      <Column class="hidden" />
+      <Column header="Sainte-Laguë/Schepers" :colspan="2">
+        <template #header>
+          <Checkbox v-model="this.style.sls.details" :binary="true" v-tooltip.top="'Details ein-/ausblenden'" aria-label="Details zum Sainte-Laguë/Schepers-Verfahren anzeigen" />
+        </template>
+      </Column>
+      <Column v-if="this.style.sls.details" header="Quotienten" :colspan="this.style.sls.quotientenDetails === true ? 19 : 1">
+        <template #header>
+          <Checkbox v-model="this.style.sls.quotientenDetails" :binary="true" aria-label="Quotientendetails ein-/ausblenden" />
+        </template>
+      </Column>
+      <Column v-if="this.style.sls.details" header="Rangzahlen" :colspan="this.style.sls.rangDetails === true ? 19 : 1">
+        <template #header>
+          <Checkbox v-model="this.style.sls.rangDetails" :binary="true" aria-label="Rangzahlendetails ein-/ausblenden" />
+        </template>
+      </Column>
+      <Column v-if="this.style.sls.details" header="Sitze" :colspan="this.style.sls.sitzeDetails === true ? 19 : 1">
+        <template #header>
+          <Checkbox v-model="this.style.sls.sitzeDetails" :binary="true" aria-label="Sitzdetails ein-/ausblenden" />
+        </template>
+      </Column>
+      <Column v-if="this.style.sls.details" header="Patt" :colspan="this.style.sls.pattDetails === true ? 4 : 1">
+        <template #header>
+          <Checkbox v-model="this.style.sls.pattDetails" :binary="true" aria-label="Pattdetails ein-/ausblenden" />
+        </template>
+      </Column>
+      <Column v-if="this.style.sls.details" header="Zulässig" />
+    </Row>
+    <Row>
+      <Column header="Partei/Wählergruppe" />
+      <Column header="Sitze im Hauptorgan" />
+      <Column header="AG?" />
+      <Column header="Proporzgenaue Zahl Ausschuss" />
+      <Column header="Sicher vertreten?" />
+      <Column header="Quotenkriterium" />
+      <Column header="H/N" class="header-hn" />
+      <Column header="SL/S" />
+      <Column header="d'H" />
+
+      <!-- subheader hn -->
+      <Column class="hidden" />
+      <Column header="Sitze" />
+      <Column header="Patt Auflösung" />
+      <Column v-if="this.style.hn.details" header="S ganz" />
+      <Column v-if="this.style.hn.details" header="S Rest" />
+      <Column v-if="this.style.hn.details" header="Rng Rest" />
+      <Column v-if="this.style.hn.details" header="Rest&shy;sitz" />
+      <Column v-if="this.style.hn.details" header="Patt" />
+      <Column v-if="this.style.hn.details" header="Los Chance" />
+      <Column v-if="this.style.hn.details" header="Stimmen/ Gelost" />
+      <Column v-if="this.style.hn.details" header="Patt&shy;gewinn" />
+
+      <!-- subheader sls -->
+      <Column class="hidden" />
+      <Column header="Sitze" />
+      <Column header="Patt Auf&shy;lösung" />
+
+      <Column class="right" v-for="(q, key) in subHeaderView(data.helper.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="key" :header="':' + q" />
+      <Column class="right" v-for="(q, key) in subHeaderView(data.helper.sls.quotienten, this.style.sls.details, this.style.sls.rangDetails)" :key="key" :header="'R' + q" />
+      <Column class="right" v-for="(q, key) in subHeaderView(data.helper.sls.quotienten, this.style.sls.details, this.style.sls.sitzeDetails)" :key="key" :header="'SP' + q" />
+
+      <Column class="centered" v-if="this.style.sls.details" header="Patt?" />
+      <Column class="right" v-if="this.style.sls.details && this.style.sls.pattDetails" header="Los Chance" />
+      <Column class="right" v-if="this.style.sls.details && this.style.sls.pattDetails" header="Stimmen Gelost" />
+      <Column class="centered" v-if="this.style.sls.details && this.style.sls.pattDetails" header="Patt&shy;gewinn" />
+      <Column class="centered" v-if="this.style.sls.details" header="QK verletzt" />
+    </Row>
+  </ColumnGroup>
+
+  <Column field="name">
+    <template #body="slotProps">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <Button icon="pi pi-pencil" severity="secondary" rounded outlined aria-label="Bearbeiten" />
+        <Button icon="pi pi-trash" severity="secondary" rounded outlined aria-label="Löschen" @click="deleteItem(slotProps.data.id)" />
+        <span>{{ slotProps.data.name }}</span>
+      </div>
+    </template>
+  </Column>
+  <Column field="sitzeHauptorgan" />
+  <Column field="ag" />
+  <Column field="proporzgenaueZahlAusschuss">
+    <template #body="slotProps">
+      <DataBar :current="slotProps.data.proporzgenaueZahlAusschuss" :max="data.helper.maxProporzgenaueZahlAusschuss" :decimals="2" />
+    </template>
+  </Column>
+  <Column>
+    <template #body="slotProps">
+      {{ formatYesNo(slotProps.data.sicherVertreten) }}
+    </template>
+  </Column>
+  <Column field="quotenKriterium" />
+  <Column>
+    <template #body>
+      <div>
+        {{ formatOkNok(true) }}
+      </div>
+    </template>
+  </Column>
+
+  <Column field="sls.qkVerletzt" class="no-pad">
+    <template #body="slotProps">
+      <div class="cell-pad" :class="slotProps.data.sls.qkVerletzt ? 'false' : ''">
+        {{ formatOkNok(!slotProps.data.sls.qkVerletzt) }}
+      </div>
+    </template>
+  </Column>
+  <Column field="dh.qkVerletzt" class="no-pad">
+    <template #body="slotProps">
+      <div class="cell-pad" :class="slotProps.data.dh.qkVerletzt ? 'false' : ''">
+        {{ formatOkNok(!slotProps.data.dh.qkVerletzt) }}
+      </div>
+    </template>
+  </Column>
+
+  <!-- body hn -->
+  <Column class="hidden" />
+  <Column field="hn.sitze">
+    <template #body="slotProps">
+      <DataBar :current="slotProps.data.hn.sitze" :max="data.helper.hn.maxSitze" colour="green" />
+    </template>
+  </Column>
+  <Column field="hn.sitze">
+    <template #body="slotProps">
+      <DataBar :current="slotProps.data.hn.pattaufloesung" :max="data.helper.hn.maxPattaufloesung" :decimals="2" colour="yellow" />
+    </template>
+  </Column>
+  <Column v-if="this.style.hn.details" field="hn.sitzeGanz">
+    <template #body="slotProps">
+      <DataBar :current="slotProps.data.hn.sitzeGanz" :max="data.helper.hn.maxSitzeGanz" />
+    </template>
+  </Column>
+  <Column v-if="this.style.hn.details" field="hn.sitzeRest">
+    <template #body="slotProps">
+      {{ formatDecimal(slotProps.data.hn.sitzeRest, 4) }}
+    </template>
+  </Column>
+  <Column v-if="this.style.hn.details" field="hn.rangRest">
+    <template #body="slotProps">
+      {{ formatRank(slotProps.data.hn.rangRest) }}
+    </template>
+  </Column>
+  <Column v-if="this.style.hn.details" field="hn.restsitz" />
+  <Column v-if="this.style.hn.details" field="hn.patt">
+    <template #body="slotProps">
+      {{ formatYesNo(slotProps.data.hn.patt) }}
+    </template>
+  </Column>
+  <Column v-if="this.style.hn.details" field="hn.losChance">
+    <template #body="slotProps">
+      {{ formatPercent(slotProps.data.hn.losChance) }}
+    </template>
+  </Column>
+  <Column v-if="this.style.hn.details" field="hn.stimmenGelost" />
+  <Column v-if="this.style.hn.details" field="hn.pattgewinn">
+    <template #body="slotProps">
+      {{ formatYesNo(slotProps.data.hn.pattgewinn) }}
+    </template>
+  </Column>
+
+  <!-- body sls -->
+  <Column class="hidden" />
+  <Column field="sls.sitzeGesamt">
+    <template #body="slotProps">
+      <DataBar :current="slotProps.data.sls.sitzeGesamt" :max="data.helper.sls.maxSitzeGesamt" colour="green" />
+    </template>
+  </Column>
+  <Column field="sls.pattaufloesung">
+    <template #body="slotProps">
+      <DataBar :current="slotProps.data.sls.pattaufloesung" :max="data.helper.sls.maxPattaufloesung" colour="yellow" />
+    </template>
+  </Column>
+  <template>
+    <div>
+      {{ data }}
+    </div>
+    <!-- <Column class="right" field="sls.quotienten" style="height: 1px;">
+      <div style="display: flex; height: 100%;">
+        <td v-for="[q, value] in dataView(data.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="q"
+          style="flex: 1; height: 100%; min-width: 3.5rem; align-content: center; text-align: right;"
+        >
+          {{ formatDecimal(value, 2) }}
+        </td>
+      </div>
+    </Column> -->
+  </template>
+
+  <!-- <Column class="right" field="sls.quotienten" style="height: 1px;">
+    <template #body="{data}">
+      <div style="display: flex; height: 100%;">
+        <td v-for="[q, value] in dataView(data.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="q"
+          style="flex: 1; height: 100%; min-width: 3.5rem; align-content: center; text-align: right;"
+        >
+          {{ formatDecimal(value, 2) }}
+        </td>
+      </div>
+    </template>
+  </Column> -->
+
+  <!-- <Column class="right" field="sls.quotienten" style="height: 1px;">
+    <template #body="{data}">
+      <div style="display: flex; height: 100%;">
+        <td class="right" v-for="[q, value] in dataView(data.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="q"
+          style="flex: 1; height: 100%; min-width: 3rem; vertical-align: middle;"
+        >
+          {{ formatDecimal(value, 2) }}
+        </td>
+      </div>
+    </template>
+  </Column> -->
+
+  <!-- 
+
+      <td class="right" v-for="[q, value] in dataView(entry.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="q">
+        {{ value.toFixed(2) }}
       </td>
-      <td>
-        <DataBar :current="entry.hN.pattaufloesung" :max="data.helper.hn.maxPattaufloesung" :decimals="2" />
+
+      <td class="right" v-for="[q, value] in dataView(entry.sls.raenge, this.style.sls.details, this.style.sls.rangDetails)" :key="q">
+        {{ value }}.
       </td>
-      <td v-show="this.style.hn.details">
-        <DataBar :current="entry.hN.sitzeGanz" :max="data.helper.hn.maxSitzeGanz" />
+
+      <td class="right" v-for="[q, value] in dataView(entry.sls.sitze, this.style.sls.details, this.style.sls.sitzeDetails)" :key="q">
+        {{ value }}
       </td>
-      <td class="right" v-show="this.style.hn.details">
-        {{ entry.hN.sitzeRest.toFixed(4) }}
+
+      <td class="centered" v-if="this.style.sls.details">
+        {{ entry.sls.patt ? "ja" : "nein" }}
       </td>
-      <td class="centered" v-show="this.style.hn.details">
-        {{ entry.hN.rangRest }}.
+      <td class="right" v-if="this.style.sls.details && this.style.sls.pattDetails">
+        {{ Math.round(entry.sls.losChance * 100) + " %" }}
       </td>
-      <td class="right" v-show="this.style.hn.details">
-        {{ entry.hN.restsitz }}
+      <td class="right" v-if="this.style.sls.details && this.style.sls.pattDetails">
+        {{ entry.sls.stimmenGelost }}
       </td>
-      <td class="centered" v-show="this.style.hn.details">
-        {{ entry.hN.patt ? "ja" : "nein" }}
+      <td class="centered" v-if="this.style.sls.details && this.style.sls.pattDetails">
+        {{ entry.sls.pattgewinn ? "ja" : "nein" }}
       </td>
-      <td class="right" v-show="this.style.hn.details">
-        {{ Math.round(entry.hN.losChance * 100) + " %" }}
-      </td>
-      <td class="right" v-show="this.style.hn.details">
-        {{ entry.hN.stimmenGelost }}
-      </td>
-      <td class="centered" v-show="this.style.hn.details">
-        {{ entry.hN.pattgewinn ? "ja" : "nein" }}
-      </td>
-    </tr>
-  </tbody>
-  <tfoot>
-    <tr class="bold">
-      <td>{{ data.ergebnisse.hn.summeSitze }}</td>
-      <td>{{ data.ergebnisse.hn.summePattaufloesung }}</td>
-      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeSitzeGanz }}</td>
-      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeSitzeRest }}</td>
-      <td v-show="this.style.hn.details"></td>
-      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeRestsitze }}</td>
-      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summePatt }}</td>
-      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeLosChance }}</td>
-      <td v-show="this.style.hn.details"></td>
-      <td v-show="this.style.hn.details"></td>
-    </tr>
-  </tfoot>
-</table>
+      <td class="centered" v-if="this.style.sls.details">
+        {{ entry.sls.qkVerletzt ? "ja" : "nein" }}
+      </td> -->
+  
+
+  <ColumnGroup type="footer">
+    <Row>
+      <Column footer="Summe" />
+      <Column class="no-pad">
+        <template #footer>
+          <div class="cell-pad" :class="summeHauptorganKorrekt">
+            {{ data.ergebnisse.summeSitzeHauptorgan }}
+          </div>
+        </template>
+      </Column>
+      <Column />
+      <Column :footer="data.ergebnisse.summeProporzgenaueZahlAusschuss" />
+      <Column :colspan="5" />
+
+      <!-- footer hn -->
+      <Column class="hidden" />
+      <Column :footer="data.ergebnisse.hn.summeSitze" />
+      <Column :footer="data.ergebnisse.hn.summePattaufloesung" />
+      <Column v-if="this.style.hn.details" :footer="data.ergebnisse.hn.summeSitzeGanz" />
+      <Column v-if="this.style.hn.details" :footer="data.ergebnisse.hn.summeSitzeRest" />
+      <Column v-if="this.style.hn.details" />
+      <Column v-if="this.style.hn.details" :footer="data.ergebnisse.hn.summeRestsitze" />
+      <Column v-if="this.style.hn.details" :footer="data.ergebnisse.hn.summePatt" />
+      <Column v-if="this.style.hn.details" :footer="data.ergebnisse.hn.summeLosChance" />
+      <Column v-if="this.style.hn.details" />
+      <Column v-if="this.style.hn.details" />
+
+      <!-- footer sls -->
+      <Column class="hidden" />
+      <Column :footer="data.ergebnisse.sls.summeSitzeGesamt" />
+      <Column :footer="data.ergebnisse.sls.summePattaufloesung" />
+
+      <Column v-if="this.style.sls.details" :colspan="this.style.sls.quotientenDetails === true ? 19 : 1" />
+      <Column v-if="this.style.sls.details" :colspan="this.style.sls.rangDetails === true ? 19 : 1" />
+      <Column v-if="this.style.sls.details" :colspan="this.style.sls.sitzeDetails === true ? 19 : 1" />
+      <Column v-if="this.style.sls.details" :footer="data.ergebnisse.sls.summePatt" />
+      <Column v-if="this.style.sls.details && this.style.sls.pattDetails" :footer="data.ergebnisse.sls.summeLosChance"  />
+      <Column v-if="this.style.sls.details && this.style.sls.pattDetails" />
+      <Column v-if="this.style.sls.details && this.style.sls.pattDetails" />
+      <Column v-if="this.style.sls.details" :footer="data.ergebnisse.sls.summeQkVerletzt" />
+    </Row>
+  </ColumnGroup>
+</DataTable>
 
 <table>
   <thead>
@@ -310,85 +494,59 @@ export default {
 </table>
 </template>
 
-<style scoped>
+<style>
 @import url("../assets/css/theme-colours.css");
 
-table {
-  border-collapse: collapse;
+.hidden {
+  width: 1rem;
+  background-color: var(--surface-overlay);
+  border-top: none;
+  border-bottom: none;
 }
 
-table, td, th {
-  border: 2px solid var(--table-cell-separator);
+.th-empty-top-right-corner {
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
 }
 
-tbody td {
-  border: none;
+.no-pad {
+  padding: 0;
 }
 
-th {
-  background-color: var(--table-header);
-}
-
-tbody tr:nth-child(odd) {
-  background-color: var(--table-row-odd);
-}
-
-tbody tr:nth-child(even) {
-  background-color: var(--table-row-even);
-}
-
-tfoot td {
-  background-color: var(--table-row-even);
-}
-
-table tfoot td {
-  text-align: right;
-}
-
-.header-hn {
-  background-color: var(--highlight-hn);
-  color: var(--text-light);
-}
-
-.header-sls {
-  background-color: var(--highlight-sls);
-  color: var(--text-light);
-}
-
-.header-dh {
-  background-color: var(--highlight-dh);
-  color: var(--text-light);
-}
-
-.bold {
-  font-weight: bold;
+.cell-pad {
+  padding: 0.375rem 0.5rem;
 }
 
 .centered {
   text-align: center;
 }
 
-.right {
-  text-align: right;
-}
-
-.left {
-  text-align: left;
-}
-
 .correct {
-  background-color: greenyellow;
+  background-color: var(--green-400);
 }
 
 .false {
-  background-color: red;
+  background-color: var(--red-500);
 }
 
-.hidden {
-  display: none;
+td[data-pc-section="footercell"] {
+  text-align: right;
 }
 
-.hand {
-  cursor: pointer;
+td .right {
+  text-align: right !important;
+}
+
+.header-hn {
+  background-color: var(--highlight-hn);
+}
+
+.header-sls {
+  background-color: var(--highlight-sls);
+}
+
+.header-dh {
+  background-color: var(--highlight-dh);
 }
 </style>
