@@ -2,8 +2,8 @@
 import Button from 'primevue/button'
 import Toolbar from 'primevue/toolbar'
 
-import BaseConfig from "./BaseConfig.vue"
-import Parteien from "./Parteien.vue"
+import BaseConfig from "../components/BaseConfig.vue"
+import Parteien from "../components/Parteien.vue"
 
 import { useState } from "../store/index.js"
 
@@ -21,19 +21,16 @@ export default {
 </script>
 
 <template>
-  <h1>Ausschusskalkulator</h1>
-  <main>
-    <BaseConfig />
+  <BaseConfig />
 
-    <div style="overflow-x: auto; padding-bottom: 10px; margin: 24px 0;">
-      <Parteien />
-    </div>
+  <div style="overflow-x: auto; padding-bottom: 10px; margin: 24px 0;">
+    <Parteien />
+  </div>
 
-    <Toolbar>
-      <template #end>
-        <Button type="reset" label="Beispiel laden" icon="pi pi-refresh" outlined @click="loadDefaults()" />
-        <Button label="Eingabe leeren" icon="pi pi-trash" severity="danger" outlined @click="clear()" />
-      </template>
-    </Toolbar>
-  </main>
+  <Toolbar>
+    <template #end>
+      <Button type="reset" label="Beispiel laden" icon="pi pi-refresh" outlined @click="loadDefaults()" />
+      <Button label="Eingabe leeren" icon="pi pi-trash" severity="danger" outlined @click="clear()" />
+    </template>
+  </Toolbar>
 </template>

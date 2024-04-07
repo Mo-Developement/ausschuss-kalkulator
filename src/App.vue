@@ -36,7 +36,9 @@ export default {
   </div>
 </div>
 
-<RouterView />
+<main>
+  <RouterView />
+</main>
 </template>
 
 <style scoped>
