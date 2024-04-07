@@ -1,11 +1,9 @@
 <script>
 import InputSwitch from 'primevue/inputswitch'
 
-import Ausschusskalkulator from "./components/Ausschusskalkulator.vue"
-
 export default {
   name: "app",
-  components: { Ausschusskalkulator, InputSwitch },
+  components: { InputSwitch },
   data() {
     return {
       darkMode: false,
@@ -24,12 +22,21 @@ export default {
 </script>
 
 <template>
-<div id="theme-switcher">
-  <i class="pi pi-sun"></i>
-  <InputSwitch v-model="darkMode" v-tooltip.left="'Dark Mode'" aria-label="Dark Mode" />
-  <i class="pi pi-moon"></i>
+<div id="top">
+  <div id="navigation">
+    <RouterLink to="/">Start</RouterLink>
+    <span> - </span>
+    <RouterLink to="/kalkulator">Ausschusskalkulator</RouterLink>
+  </div>
+
+  <div id="theme-switcher">
+    <i class="pi pi-sun"></i>
+    <InputSwitch v-model="darkMode" v-tooltip.left="'Dark Mode'" aria-label="Dark Mode" />
+    <i class="pi pi-moon"></i>
+  </div>
 </div>
-<Ausschusskalkulator />
+
+<RouterView />
 </template>
 
 <style scoped>
@@ -38,5 +45,10 @@ export default {
   align-items: center;
   justify-content: end;
   gap: 0.5rem;
+}
+
+#top {
+  display: flex;
+  justify-content: space-between;
 }
 </style>
