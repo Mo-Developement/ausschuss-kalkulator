@@ -6,6 +6,7 @@
     "serve": "vue-cli-service serve --host localhost",
     "serve-public": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "build-offline": "VUE_APP_BUILD_MODE=offline vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {

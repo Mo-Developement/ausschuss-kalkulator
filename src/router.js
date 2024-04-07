@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 
 import Ausschusskalkulator from './views/Ausschusskalkulator.vue'
 import Startseite from './views/Startseite.vue'
@@ -16,8 +16,12 @@ const routes = [
     }
 ]
 
+const routerMode = process.env.VUE_APP_BUILD_MODE === 'offline'
+    ? createWebHashHistory(process.env.BASE_URL)
+    : createWebHistory(process.env.BASE_URL)
+
 const router = createRouter({
-    history: createWebHistory(process.env.BASE_URL),
+    history: routerMode,
     routes
 })
 
