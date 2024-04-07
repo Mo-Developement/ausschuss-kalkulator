@@ -1,5 +1,5 @@
 import { computed, reactive, ref } from "vue"
-import { agEnum, pattAufloesungEnum, sitzStatus } from "./enums"
+import { pattAufloesungEnum, sitzStatus } from "./enums"
 
 function countOccurences(arr) {
     const countMap = new Map();
@@ -25,7 +25,7 @@ function rankDuplicate(countMap) {
 function newStateInstance() {
     let count = 0
 
-    function neuePartei(name, sitzeHauptorganN, ag='', stimmen=undefined) {
+    function neuePartei(name, sitzeHauptorganN, ag=null, stimmen=undefined) {
         const neu = {
             id: count,
 
@@ -37,6 +37,7 @@ function newStateInstance() {
 
         neu.proporzgenaueZahlAusschuss = computed(() => neu.sitzeHauptorgan.value / data.ergebnisse.summeSitzeHauptorgan * startConfig.sitzeAusschuss)
         neu.sicherVertreten = computed(() => neu.proporzgenaueZahlAusschuss.value >= 1 || neu.sitzeHauptorgan.value > (startConfig.sitzeHauptorgan / (1 + startConfig.sitzeAusschuss)))
+        neu.agMöglich = computed(() => !(neu.sicherVertreten.value === true || neu.sitzeHauptorgan.value === 0))
         neu.quotenKriterium = computed(() => !Number.isInteger(neu.proporzgenaueZahlAusschuss.value)
             ? Math.floor(neu.proporzgenaueZahlAusschuss.value) + " oder " + Math.ceil(neu.proporzgenaueZahlAusschuss.value)
             : neu.proporzgenaueZahlAusschuss)
@@ -78,7 +79,7 @@ function newStateInstance() {
                 : 0)
             neu[name].stimmenGelost = computed(() => (neu[name].patt.value === true && startConfig.pattAufloesung === pattAufloesungEnum.STIMMEN.value)
                 ? neu.stimmen : 0)
-            neu[name].pattgewinn = computed(() => data.helper.raengeStimmen.get(neu.stimmen.value) <= (startConfig.sitzeAusschuss - data.ergebnisse[name].summeSitzeGesamt))
+            neu[name].pattgewinn = computed(() => data.helper[name].raengeStimmenGelost.get(neu.stimmen.value) <= (startConfig.sitzeAusschuss - data.ergebnisse[name].summeSitzeGesamt))
             neu[name].pattaufloesung = computed(() => neu[name].patt.value === false ? 0
                 : (startConfig.pattAufloesung === pattAufloesungEnum.LOS.value
                     ? neu[name].losChance.value
@@ -150,6 +151,7 @@ function newStateInstance() {
         data.helper[name].maxPattaufloesung = computed(() => parteien.value.reduce((max, p) => Math.max(max, p[name].pattaufloesung), 0))
         data.helper[name].vorkommenQuotienten = computed(() => countOccurences(parteien.value.reduce((arr, p) => arr.concat(...p[name].quotienten.values()), [])))
         data.helper[name].raenge = computed(() => rankDuplicate(data.helper[name].vorkommenQuotienten))
+        data.helper[name].raengeStimmenGelost = computed(() => rankDuplicate(countOccurences(parteien.value.map(p => p[name].stimmenGelost.value))))
     }
 
     setupHareNiemeyerVerfahren()
@@ -161,8 +163,13 @@ function newStateInstance() {
         data.parteien.splice(idx, 1)
     }
 
-    function addItem(partei = neuePartei("Test", 123)) {
-        data.parteien.push(partei)
+    function updateItem(partei) {
+        const idx = data.parteien.findIndex(item => item.id === partei.id)
+        if (idx === -1) {
+            data.parteien.push(partei)
+        } else {
+            data.parteien.splice(idx, 1, partei)
+        }
     }
 
     function clear() {
@@ -181,17 +188,17 @@ function newStateInstance() {
         startConfig.pattAufloesung = pattAufloesungEnum.STIMMEN.value
 
         data.parteien.push(
-            neuePartei("CSU", 20, "", 6543),
-            neuePartei("GRÜNE", 16, "", 5432), // 20 für SL/S
-            neuePartei("FREIE WÄHLER", 10, "", 4321),
-            neuePartei("SPD", 8, "", 3210),
-            neuePartei("AfD", 4, "", 2345),
-            neuePartei("FDP", 3, agEnum.AG_2.value, 1234),
-            neuePartei("LINKE", 2, agEnum.AG_2.value, 1111),
-            neuePartei("ÖDP", 2, agEnum.AG_1.value, 1000),
-            neuePartei("Bayernpartei", 2, agEnum.AG_2.value, 211),
-            neuePartei("FRANKEN", 2, agEnum.AG_1.value, 987),
-            neuePartei("Tierschutzpartei", 1, agEnum.AG_1.value, 182)
+            neuePartei("CSU", 20, null, 6543),
+            neuePartei("GRÜNE", 16, null, 5432), // 20 für SL/S
+            neuePartei("FREIE WÄHLER", 10, null, 4321),
+            neuePartei("SPD", 8, null, 3210),
+            neuePartei("AfD", 4, null, 2345),
+            neuePartei("FDP", 3, 2, 1234),
+            neuePartei("LINKE", 2, 2, 1111),
+            neuePartei("ÖDP", 2, 1, 1000),
+            neuePartei("Bayernpartei", 2, 2, 211),
+            neuePartei("FRANKEN", 2, 2, 987),
+            neuePartei("Tierschutzpartei", 1, 1, 182)
         )
     }
 
@@ -202,7 +209,8 @@ function newStateInstance() {
         clear,
         loadDefaults,
 
-        addItem,
+        neuePartei,
+        updateItem,
         deleteItem
     }
 }

@@ -7,7 +7,8 @@ export default {
     decimals: {
       default: 0,
       type: Number
-    }
+    },
+    colour: String
   },
   computed: {
     width() {
@@ -15,6 +16,14 @@ export default {
       return this.max !== 0
         ? (this.current / this.max * 100) + '%'
         : '0%'
+    },
+    computedColour() {
+      let computedColour = 'var(--gray-500)'
+      switch (this.colour) {
+        case 'green': computedColour = 'var(--green-500)'; break;
+        case 'yellow': computedColour = 'var(--yellow-400)'; break;
+      }
+      return computedColour
     }
   }
 }
@@ -26,7 +35,7 @@ export default {
       <div class="databar"></div>
     </div>
     <span>
-      {{ current.toFixed(this.decimals) }}
+      {{ current.toFixed(this.decimals).replace(/\./g, ',') }}
     </span>
   </div>
 </template>
@@ -39,11 +48,12 @@ export default {
 }
 
 .wrapper {
-  width: 100%;
+  width: 5rem;
 }
 
 .databar {
-  background-color: grey;
+  background-color: v-bind('computedColour');
+  /* border-radius: var(--border-radius); */
   height: 100%;
   width: v-bind('width');
 }

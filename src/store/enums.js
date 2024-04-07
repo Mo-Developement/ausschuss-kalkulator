@@ -8,15 +8,13 @@ export const pattAufloesungEnum = Object.freeze({
     STIMMEN: new SelectItem("stimmen", "Stimmen")
 })
 
-export const agEnum = Object.freeze({
-    AG_1: new SelectItem("ag1", "AG 1"),
-    AG_2: new SelectItem("ag2", "AG 2"),
-    AG_3: new SelectItem("ag3", "AG 3"),
-    AG_4: new SelectItem("ag4", "AG 4")
-})
-
 export const sitzStatus = Object.freeze({
     SITZ: "SITZ",
     PATT: "PATT",
     LEER: ""
 })
+
+export const quotientenVerfahrenTabelle = Object.freeze([
+    { dataKey: "sls", name: "Sainte-Laguë/<wbr>Schepers" },
+    { dataKey: "dh", name: "d'Hondt" }
+])

@@ -1,20 +1,17 @@
 <script>
 import Button from 'primevue/button'
-import Checkbox from 'primevue/checkbox'
-import Column from 'primevue/column'
-import ColumnGroup from 'primevue/columngroup'
-import DataTable from 'primevue/datatable'
-import Row from 'primevue/row'
 
 import DataBar from "./DataBar.vue"
+import EditDialog from "./EditDialog.vue"
 
 import { useState } from "../store/index.js"
+import { sitzStatus, quotientenVerfahrenTabelle } from '@/store/enums'
 
 export default {
   name: 'ParteiDaten',
   setup() {
-    const { deleteItem, clear, loadDefaults, data, startConfig } = useState()
-    return { deleteItem, clear, loadDefaults, data, startConfig }
+    const { deleteItem, clear, loadDefaults, neuePartei, updateItem, data, startConfig } = useState()
+    return { deleteItem, clear, loadDefaults, neuePartei, updateItem, data, startConfig, quotientenVerfahrenTabelle }
   },
   data() {
     return {
@@ -28,8 +25,17 @@ export default {
           rangDetails: false,
           sitzeDetails: false,
           pattDetails: false
+        },
+        dh: {
+          details: false,
+          quotientenDetails: false,
+          rangDetails: false,
+          sitzeDetails: false,
+          pattDetails: false
         }
-      }
+      },
+      editDialogVisible: false,
+      editDialogNew: true,
     }
   },
   computed: {
@@ -52,6 +58,30 @@ export default {
         : 0
       return new Map(Array.from(entry.entries()).slice(0, end))
     },
+    headerClass(verfahren) {
+      return `header-${verfahren}`
+    },
+    styleSitzeQuotienten(value) {
+      switch (value) {
+        case sitzStatus.SITZ: return 'correct'
+        case sitzStatus.PATT: return 'patt'
+        default: return ''
+      }
+    },
+    showNewDialog() {
+      this.$refs.dialog.setData(this.neuePartei())
+      this.editDialogNew = true
+      this.editDialogVisible = true
+    },
+    showEditDialog(partei) {
+      const copy = Object.assign({}, partei)
+      this.$refs.dialog.setData(copy)
+      this.editDialogNew = false
+      this.editDialogVisible = true
+    },
+    formatAG(value) {
+      return value ? `AG ${value}` : ""
+    },
     formatYesNo(value) {
       return value === true ? "ja" : "nein"
     },
@@ -68,474 +98,362 @@ export default {
       return value + "."
     },
   },
-  components: { Button, Checkbox, Column, ColumnGroup, DataBar, DataTable, Row }
+  components: { Button, DataBar, EditDialog }
 }
 </script>
 
 <template>
-<DataTable :value="data.parteien" dataKey="id" size="small" striped-rows show-gridlines>
-  <ColumnGroup type="header">
-    <Row>
-      <Column :colspan="2">
-        <template #header>
-          <div class="centered" style="width: 100%;">
-            Zusammensetzung Hauptorgan<br>(ohne Ausschussgemeinschaften)
-          </div>
-        </template>
-      </Column>
-      <Column :colspan="3">
-        <template #header>
-          <div class="centered" style="width: 100%;">Info</div>
-        </template>
-      </Column>
-      <Column :colspan="4">
-        <template #header>
-          <div class="centered" style="width: 100%;">Zulässigkeit Verfahren</div>
-        </template>
-      </Column>
-
-      <!-- header hn -->
-      <Column class="hidden" />
-      <Column header="Hare/Niemeyer" :colspan="2">
-        <template #header>
-          <Checkbox v-model="this.style.hn.details" :binary="true" v-tooltip.top="'Details ein-/ausblenden'" aria-label="Details zum Hare/Niemeyer-Verfahren anzeigen" />
-        </template>
-      </Column>
-      <Column v-if="this.style.hn.details" class="th-empty-top-right-corner" :colspan="8" />
-
-      <!-- header sls -->
-      <Column class="hidden" />
-      <Column header="Sainte-Laguë/Schepers" :colspan="2">
-        <template #header>
-          <Checkbox v-model="this.style.sls.details" :binary="true" v-tooltip.top="'Details ein-/ausblenden'" aria-label="Details zum Sainte-Laguë/Schepers-Verfahren anzeigen" />
-        </template>
-      </Column>
-      <Column v-if="this.style.sls.details" header="Quotienten" :colspan="this.style.sls.quotientenDetails === true ? 19 : 1">
-        <template #header>
-          <Checkbox v-model="this.style.sls.quotientenDetails" :binary="true" aria-label="Quotientendetails ein-/ausblenden" />
-        </template>
-      </Column>
-      <Column v-if="this.style.sls.details" header="Rangzahlen" :colspan="this.style.sls.rangDetails === true ? 19 : 1">
-        <template #header>
-          <Checkbox v-model="this.style.sls.rangDetails" :binary="true" aria-label="Rangzahlendetails ein-/ausblenden" />
-        </template>
-      </Column>
-      <Column v-if="this.style.sls.details" header="Sitze" :colspan="this.style.sls.sitzeDetails === true ? 19 : 1">
-        <template #header>
-          <Checkbox v-model="this.style.sls.sitzeDetails" :binary="true" aria-label="Sitzdetails ein-/ausblenden" />
-        </template>
-      </Column>
-      <Column v-if="this.style.sls.details" header="Patt" :colspan="this.style.sls.pattDetails === true ? 4 : 1">
-        <template #header>
-          <Checkbox v-model="this.style.sls.pattDetails" :binary="true" aria-label="Pattdetails ein-/ausblenden" />
-        </template>
-      </Column>
-      <Column v-if="this.style.sls.details" header="Zulässig" />
-    </Row>
-    <Row>
-      <Column header="Partei/Wählergruppe" />
-      <Column header="Sitze im Hauptorgan" />
-      <Column header="AG?" />
-      <Column header="Proporzgenaue Zahl Ausschuss" />
-      <Column header="Sicher vertreten?" />
-      <Column header="Quotenkriterium" />
-      <Column header="H/N" class="header-hn" />
-      <Column header="SL/S" />
-      <Column header="d'H" />
-
-      <!-- subheader hn -->
-      <Column class="hidden" />
-      <Column header="Sitze" />
-      <Column header="Patt Auflösung" />
-      <Column v-if="this.style.hn.details" header="S ganz" />
-      <Column v-if="this.style.hn.details" header="S Rest" />
-      <Column v-if="this.style.hn.details" header="Rng Rest" />
-      <Column v-if="this.style.hn.details" header="Rest&shy;sitz" />
-      <Column v-if="this.style.hn.details" header="Patt" />
-      <Column v-if="this.style.hn.details" header="Los Chance" />
-      <Column v-if="this.style.hn.details" header="Stimmen/ Gelost" />
-      <Column v-if="this.style.hn.details" header="Patt&shy;gewinn" />
-
-      <!-- subheader sls -->
-      <Column class="hidden" />
-      <Column header="Sitze" />
-      <Column header="Patt Auf&shy;lösung" />
-
-      <Column class="right" v-for="(q, key) in subHeaderView(data.helper.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="key" :header="':' + q" />
-      <Column class="right" v-for="(q, key) in subHeaderView(data.helper.sls.quotienten, this.style.sls.details, this.style.sls.rangDetails)" :key="key" :header="'R' + q" />
-      <Column class="right" v-for="(q, key) in subHeaderView(data.helper.sls.quotienten, this.style.sls.details, this.style.sls.sitzeDetails)" :key="key" :header="'SP' + q" />
-
-      <Column class="centered" v-if="this.style.sls.details" header="Patt?" />
-      <Column class="right" v-if="this.style.sls.details && this.style.sls.pattDetails" header="Los Chance" />
-      <Column class="right" v-if="this.style.sls.details && this.style.sls.pattDetails" header="Stimmen Gelost" />
-      <Column class="centered" v-if="this.style.sls.details && this.style.sls.pattDetails" header="Patt&shy;gewinn" />
-      <Column class="centered" v-if="this.style.sls.details" header="QK verletzt" />
-    </Row>
-  </ColumnGroup>
-
-  <Column field="name">
-    <template #body="slotProps">
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <Button icon="pi pi-pencil" severity="secondary" rounded outlined aria-label="Bearbeiten" />
-        <Button icon="pi pi-trash" severity="secondary" rounded outlined aria-label="Löschen" @click="deleteItem(slotProps.data.id)" />
-        <span>{{ slotProps.data.name }}</span>
-      </div>
-    </template>
-  </Column>
-  <Column field="sitzeHauptorgan" />
-  <Column field="ag" />
-  <Column field="proporzgenaueZahlAusschuss">
-    <template #body="slotProps">
-      <DataBar :current="slotProps.data.proporzgenaueZahlAusschuss" :max="data.helper.maxProporzgenaueZahlAusschuss" :decimals="2" />
-    </template>
-  </Column>
-  <Column>
-    <template #body="slotProps">
-      {{ formatYesNo(slotProps.data.sicherVertreten) }}
-    </template>
-  </Column>
-  <Column field="quotenKriterium" />
-  <Column>
-    <template #body>
-      <div>
-        {{ formatOkNok(true) }}
-      </div>
-    </template>
-  </Column>
-
-  <Column field="sls.qkVerletzt" class="no-pad">
-    <template #body="slotProps">
-      <div class="cell-pad" :class="slotProps.data.sls.qkVerletzt ? 'false' : ''">
-        {{ formatOkNok(!slotProps.data.sls.qkVerletzt) }}
-      </div>
-    </template>
-  </Column>
-  <Column field="dh.qkVerletzt" class="no-pad">
-    <template #body="slotProps">
-      <div class="cell-pad" :class="slotProps.data.dh.qkVerletzt ? 'false' : ''">
-        {{ formatOkNok(!slotProps.data.dh.qkVerletzt) }}
-      </div>
-    </template>
-  </Column>
-
-  <!-- body hn -->
-  <Column class="hidden" />
-  <Column field="hn.sitze">
-    <template #body="slotProps">
-      <DataBar :current="slotProps.data.hn.sitze" :max="data.helper.hn.maxSitze" colour="green" />
-    </template>
-  </Column>
-  <Column field="hn.sitze">
-    <template #body="slotProps">
-      <DataBar :current="slotProps.data.hn.pattaufloesung" :max="data.helper.hn.maxPattaufloesung" :decimals="2" colour="yellow" />
-    </template>
-  </Column>
-  <Column v-if="this.style.hn.details" field="hn.sitzeGanz">
-    <template #body="slotProps">
-      <DataBar :current="slotProps.data.hn.sitzeGanz" :max="data.helper.hn.maxSitzeGanz" />
-    </template>
-  </Column>
-  <Column v-if="this.style.hn.details" field="hn.sitzeRest">
-    <template #body="slotProps">
-      {{ formatDecimal(slotProps.data.hn.sitzeRest, 4) }}
-    </template>
-  </Column>
-  <Column v-if="this.style.hn.details" field="hn.rangRest">
-    <template #body="slotProps">
-      {{ formatRank(slotProps.data.hn.rangRest) }}
-    </template>
-  </Column>
-  <Column v-if="this.style.hn.details" field="hn.restsitz" />
-  <Column v-if="this.style.hn.details" field="hn.patt">
-    <template #body="slotProps">
-      {{ formatYesNo(slotProps.data.hn.patt) }}
-    </template>
-  </Column>
-  <Column v-if="this.style.hn.details" field="hn.losChance">
-    <template #body="slotProps">
-      {{ formatPercent(slotProps.data.hn.losChance) }}
-    </template>
-  </Column>
-  <Column v-if="this.style.hn.details" field="hn.stimmenGelost" />
-  <Column v-if="this.style.hn.details" field="hn.pattgewinn">
-    <template #body="slotProps">
-      {{ formatYesNo(slotProps.data.hn.pattgewinn) }}
-    </template>
-  </Column>
-
-  <!-- body sls -->
-  <Column class="hidden" />
-  <Column field="sls.sitzeGesamt">
-    <template #body="slotProps">
-      <DataBar :current="slotProps.data.sls.sitzeGesamt" :max="data.helper.sls.maxSitzeGesamt" colour="green" />
-    </template>
-  </Column>
-  <Column field="sls.pattaufloesung">
-    <template #body="slotProps">
-      <DataBar :current="slotProps.data.sls.pattaufloesung" :max="data.helper.sls.maxPattaufloesung" colour="yellow" />
-    </template>
-  </Column>
-  <template>
-    <div>
-      {{ data }}
-    </div>
-    <!-- <Column class="right" field="sls.quotienten" style="height: 1px;">
-      <div style="display: flex; height: 100%;">
-        <td v-for="[q, value] in dataView(data.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="q"
-          style="flex: 1; height: 100%; min-width: 3.5rem; align-content: center; text-align: right;"
-        >
-          {{ formatDecimal(value, 2) }}
-        </td>
-      </div>
-    </Column> -->
-  </template>
-
-  <!-- <Column class="right" field="sls.quotienten" style="height: 1px;">
-    <template #body="{data}">
-      <div style="display: flex; height: 100%;">
-        <td v-for="[q, value] in dataView(data.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="q"
-          style="flex: 1; height: 100%; min-width: 3.5rem; align-content: center; text-align: right;"
-        >
-          {{ formatDecimal(value, 2) }}
-        </td>
-      </div>
-    </template>
-  </Column> -->
-
-  <!-- <Column class="right" field="sls.quotienten" style="height: 1px;">
-    <template #body="{data}">
-      <div style="display: flex; height: 100%;">
-        <td class="right" v-for="[q, value] in dataView(data.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="q"
-          style="flex: 1; height: 100%; min-width: 3rem; vertical-align: middle;"
-        >
-          {{ formatDecimal(value, 2) }}
-        </td>
-      </div>
-    </template>
-  </Column> -->
-
-  <!-- 
-
-      <td class="right" v-for="[q, value] in dataView(entry.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="q">
-        {{ value.toFixed(2) }}
-      </td>
-
-      <td class="right" v-for="[q, value] in dataView(entry.sls.raenge, this.style.sls.details, this.style.sls.rangDetails)" :key="q">
-        {{ value }}.
-      </td>
-
-      <td class="right" v-for="[q, value] in dataView(entry.sls.sitze, this.style.sls.details, this.style.sls.sitzeDetails)" :key="q">
-        {{ value }}
-      </td>
-
-      <td class="centered" v-if="this.style.sls.details">
-        {{ entry.sls.patt ? "ja" : "nein" }}
-      </td>
-      <td class="right" v-if="this.style.sls.details && this.style.sls.pattDetails">
-        {{ Math.round(entry.sls.losChance * 100) + " %" }}
-      </td>
-      <td class="right" v-if="this.style.sls.details && this.style.sls.pattDetails">
-        {{ entry.sls.stimmenGelost }}
-      </td>
-      <td class="centered" v-if="this.style.sls.details && this.style.sls.pattDetails">
-        {{ entry.sls.pattgewinn ? "ja" : "nein" }}
-      </td>
-      <td class="centered" v-if="this.style.sls.details">
-        {{ entry.sls.qkVerletzt ? "ja" : "nein" }}
-      </td> -->
-  
-
-  <ColumnGroup type="footer">
-    <Row>
-      <Column footer="Summe" />
-      <Column class="no-pad">
-        <template #footer>
-          <div class="cell-pad" :class="summeHauptorganKorrekt">
-            {{ data.ergebnisse.summeSitzeHauptorgan }}
-          </div>
-        </template>
-      </Column>
-      <Column />
-      <Column :footer="data.ergebnisse.summeProporzgenaueZahlAusschuss" />
-      <Column :colspan="5" />
-
-      <!-- footer hn -->
-      <Column class="hidden" />
-      <Column :footer="data.ergebnisse.hn.summeSitze" />
-      <Column :footer="data.ergebnisse.hn.summePattaufloesung" />
-      <Column v-if="this.style.hn.details" :footer="data.ergebnisse.hn.summeSitzeGanz" />
-      <Column v-if="this.style.hn.details" :footer="data.ergebnisse.hn.summeSitzeRest" />
-      <Column v-if="this.style.hn.details" />
-      <Column v-if="this.style.hn.details" :footer="data.ergebnisse.hn.summeRestsitze" />
-      <Column v-if="this.style.hn.details" :footer="data.ergebnisse.hn.summePatt" />
-      <Column v-if="this.style.hn.details" :footer="data.ergebnisse.hn.summeLosChance" />
-      <Column v-if="this.style.hn.details" />
-      <Column v-if="this.style.hn.details" />
-
-      <!-- footer sls -->
-      <Column class="hidden" />
-      <Column :footer="data.ergebnisse.sls.summeSitzeGesamt" />
-      <Column :footer="data.ergebnisse.sls.summePattaufloesung" />
-
-      <Column v-if="this.style.sls.details" :colspan="this.style.sls.quotientenDetails === true ? 19 : 1" />
-      <Column v-if="this.style.sls.details" :colspan="this.style.sls.rangDetails === true ? 19 : 1" />
-      <Column v-if="this.style.sls.details" :colspan="this.style.sls.sitzeDetails === true ? 19 : 1" />
-      <Column v-if="this.style.sls.details" :footer="data.ergebnisse.sls.summePatt" />
-      <Column v-if="this.style.sls.details && this.style.sls.pattDetails" :footer="data.ergebnisse.sls.summeLosChance"  />
-      <Column v-if="this.style.sls.details && this.style.sls.pattDetails" />
-      <Column v-if="this.style.sls.details && this.style.sls.pattDetails" />
-      <Column v-if="this.style.sls.details" :footer="data.ergebnisse.sls.summeQkVerletzt" />
-    </Row>
-  </ColumnGroup>
-</DataTable>
-
 <table>
-  <thead>
+  <thead class="header-info">
     <tr class="bold centered">
+      <!-- Header Info -->
+      <th colspan="3">
+        Zusammensetzung Hauptorgan<br>(ohne Ausschussgemeinschaften)
+      </th>
       <th colspan="2">
-        Sainte-Laguë/<wbr>Schepers
-        <button class="hand" @click="style.sls.details = !style.sls.details">{{ this.style.sls.details ? "-" : "+" }}</button>
+        Info
       </th>
-      <th v-if="this.style.sls.details" :colspan="this.style.sls.quotientenDetails === true ? 19 : 1">
-        Quotienten
-        <button class="hand" @click="style.sls.quotientenDetails = !style.sls.quotientenDetails">{{ this.style.sls.quotientenDetails ? "-" : "+" }}</button>
+      <th colspan="4">
+        Zulässigkeit Verfahren
       </th>
-      <th v-if="this.style.sls.details" :colspan="this.style.sls.rangDetails === true ? 19 : 1">
-        Rangzahlen
-        <button class="hand" @click="style.sls.rangDetails = !style.sls.rangDetails">{{ this.style.sls.rangDetails ? "-" : "+" }}</button>
+
+      <!-- Header HN -->
+      <th class="hidden"></th>
+      <th class="header-hn relative" colspan="2">
+        <button class="expand-button" @click="style.hn.details = !style.hn.details">{{ this.style.hn.details ? "-" : "+" }}</button>
+        Hare/Niemeyer
       </th>
-      <th v-if="this.style.sls.details" :colspan="this.style.sls.sitzeDetails === true ? 19 : 1">
-        Sitze
-        <button class="hand" @click="style.sls.sitzeDetails = !style.sls.sitzeDetails">{{ this.style.sls.sitzeDetails ? "-" : "+" }}</button>
-      </th>
-      <th v-if="this.style.sls.details" :colspan="this.style.sls.pattDetails === true ? 4 : 1">
-        Patt
-        <button class="hand" @click="style.sls.pattDetails = !style.sls.pattDetails">{{ this.style.sls.pattDetails ? "-" : "+" }}</button>
-      </th>
-      <th v-if="this.style.sls.details" >
-        Zulässig
-      </th>
+      <th class="th-empty-top-right-corner" colspan="8" v-show="this.style.hn.details"></th>
+      
+      <!-- Header SLS + Header dH -->
+      <template v-for="{ dataKey, name } of quotientenVerfahrenTabelle" :key="dataKey">
+        <th class="hidden"></th>
+        <th :class="headerClass(dataKey)" colspan="2">
+          <div>
+            <button class="hand" @click="style[dataKey].details = !style[dataKey].details">{{ this.style[dataKey].details ? "-" : "+" }}</button>
+            <span v-html="name"></span>
+          </div>
+        </th>
+        <th :class="headerClass(dataKey)" v-show="this.style[dataKey].details" :colspan="this.style[dataKey].quotientenDetails === true ? 19 : 1">
+          <button class="hand" @click="style[dataKey].quotientenDetails = !style[dataKey].quotientenDetails">{{ this.style[dataKey].quotientenDetails ? "-" : "+" }}</button>
+          Quotienten
+        </th>
+        <th :class="headerClass(dataKey)" v-show="this.style[dataKey].details" :colspan="this.style[dataKey].rangDetails === true ? 19 : 1">
+          <button class="hand" @click="style[dataKey].rangDetails = !style[dataKey].rangDetails">{{ this.style[dataKey].rangDetails ? "-" : "+" }}</button>
+          Rangzahlen
+        </th>
+        <th :class="headerClass(dataKey)" v-show="this.style[dataKey].details" :colspan="this.style[dataKey].sitzeDetails === true ? 19 : 1">
+          <button class="hand" @click="style[dataKey].sitzeDetails = !style[dataKey].sitzeDetails">{{ this.style[dataKey].sitzeDetails ? "-" : "+" }}</button>
+          Sitze
+        </th>
+        <th :class="headerClass(dataKey)" v-show="this.style[dataKey].details" :colspan="this.style[dataKey].pattDetails === true ? 4 : 1">
+          <button class="hand" @click="style[dataKey].pattDetails = !style[dataKey].pattDetails">{{ this.style[dataKey].pattDetails ? "-" : "+" }}</button>
+          Patt
+        </th>
+        <th :class="headerClass(dataKey)" v-show="this.style[dataKey].details" >
+          Zulässig
+        </th>
+      </template>
     </tr>
-    <tr class="bold">
-      <th>Sitze</th>
-      <th>Patt Auf&shy;lösung</th>
+    <tr>
+      <!-- Subheader Info -->
+      <th>Partei/<wbr>Wählergruppe</th>
+      <th>Sitze im Haupt&shy;organ</th>
+      <th>AG?</th>
+      <th>Proporz&shy;genaue Zahl Ausschuss</th>
+      <th>Sicher vertreten?</th>
+      <th>Quoten&shy;kriterium</th>
+      <th class="header-hn">H/N</th>
+      <th class="header-sls">SL/S</th>
+      <th class="header-dh">d'H</th>
 
-      <th class="right" v-for="(q, key) in subHeaderView(data.helper.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="key">
-        :{{ q }}
-      </th>
-
-      <th class="right" v-for="(q, key) in subHeaderView(data.helper.sls.quotienten, this.style.sls.details, this.style.sls.rangDetails)" :key="key">
-        R{{ q }}
-      </th>
-
-      <th class="right" v-for="(q, key) in subHeaderView(data.helper.sls.quotienten, this.style.sls.details, this.style.sls.sitzeDetails)" :key="key">
-        SP{{ q }}
-      </th>
-
-      <th class="centered" v-if="this.style.sls.details">Patt?</th>
-      <th class="right" v-if="this.style.sls.details && this.style.sls.pattDetails">Los Chance</th>
-      <th class="right" v-if="this.style.sls.details && this.style.sls.pattDetails">Stimmen Gelost</th>
-      <th class="centered" v-if="this.style.sls.details && this.style.sls.pattDetails">Patt&shy;gewinn</th>
-      <th class="centered" v-if="this.style.sls.details">QK verletzt</th>
+      <!-- Subheader HN -->
+      <th class="hidden"></th>
+      <th class="header-hn">Sitze</th>
+      <th class="header-hn">Patt Auf&shy;lösung</th>
+      <th v-show="this.style.hn.details" class="header-hn">S ganz</th>
+      <th v-show="this.style.hn.details" class="header-hn">S Rest</th>
+      <th v-show="this.style.hn.details" class="header-hn">Rng Rest</th>
+      <th v-show="this.style.hn.details" class="header-hn">Rest&shy;sitz</th>
+      <th v-show="this.style.hn.details" class="header-hn">Patt</th>
+      <th v-show="this.style.hn.details" class="header-hn">Los Chance</th>
+      <th v-show="this.style.hn.details" class="header-hn">Stimmen/<wbr>Gelost</th>
+      <th v-show="this.style.hn.details" class="header-hn">Patt&shy;gewinn</th>
+      
+      <!-- Subheader SLS + Subheader dH -->
+      <template v-for="{ dataKey } of quotientenVerfahrenTabelle" :key="dataKey">
+        <th class="hidden"></th>
+        <th :class="headerClass(dataKey)">Sitze</th>
+        <th :class="headerClass(dataKey)">Patt Auf&shy;lösung</th>
+        <th :class="headerClass(dataKey)" class="right" v-for="(q, key) in subHeaderView(data.helper[dataKey].quotienten, this.style[dataKey].details, this.style[dataKey].quotientenDetails)" :key="key">
+          :{{ q }}
+        </th>
+        <th :class="headerClass(dataKey)" class="right" v-for="(q, key) in subHeaderView(data.helper[dataKey].quotienten, this.style[dataKey].details, this.style[dataKey].rangDetails)" :key="key">
+          R{{ q }}
+        </th>
+        <th :class="headerClass(dataKey)" class="right" v-for="(q, key) in subHeaderView(data.helper[dataKey].quotienten, this.style[dataKey].details, this.style[dataKey].sitzeDetails)" :key="key">
+          SP{{ q }}
+        </th>
+        <th :class="headerClass(dataKey)" class="centered" v-show="this.style[dataKey].details">Patt?</th>
+        <th :class="headerClass(dataKey)" class="right" v-show="this.style[dataKey].details && this.style[dataKey].pattDetails">Los Chance</th>
+        <th :class="headerClass(dataKey)" class="right" v-show="this.style[dataKey].details && this.style[dataKey].pattDetails">Stimmen Gelost</th>
+        <th :class="headerClass(dataKey)" class="centered" v-show="this.style[dataKey].details && this.style[dataKey].pattDetails">Patt&shy;gewinn</th>
+        <th :class="headerClass(dataKey)" class="centered" v-show="this.style[dataKey].details">QK verletzt</th>
+      </template>
     </tr>
   </thead>
   <tbody>
     <tr v-for="entry in data.parteien" :key="entry.id">
+      <!-- Daten Info -->
       <td>
-        <DataBar :current="entry.sls.sitzeGesamt" :max="data.helper.sls.maxSitzeGesamt" />
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <Button icon="pi pi-pencil" severity="secondary" rounded outlined aria-label="Bearbeiten" @click="showEditDialog(entry)" />
+          <Button icon="pi pi-trash" severity="secondary" rounded outlined aria-label="Löschen" @click="deleteItem(entry.id)" />
+          {{ entry.name }}
+        </div>
+      </td>
+      <td class="right">
+        {{ entry.sitzeHauptorgan }}
+      </td>
+      <td :class="!entry.agMöglich ? 'keine-ag' : ''">
+        {{ formatAG(entry.ag).replace(/ /g, '&nbsp;') }}
       </td>
       <td>
-        <DataBar :current="entry.sls.pattaufloesung" :max="data.helper.sls.maxPattaufloesung" />
+        <DataBar :current="entry.proporzgenaueZahlAusschuss" :max="data.helper.maxProporzgenaueZahlAusschuss" :decimals="2" />
+      </td>
+      <td class="centered">
+        {{ formatYesNo(entry.sicherVertreten) }}
+      </td>
+      <td class="centered">
+        {{ entry.quotenKriterium }}
+      </td>
+      <td class="centered">
+        {{ formatOkNok(true) }}
+      </td>
+      <td class="centered" :class="entry.sls.qkVerletzt ? 'false' :''">
+        {{ formatOkNok(!entry.sls.qkVerletzt) }}
+      </td>
+      <td class="centered" :class="entry.dh.qkVerletzt ? 'false' : ''">
+        {{ formatOkNok(!entry.dh.qkVerletzt) }}
       </td>
 
-      <td class="right" v-for="[q, value] in dataView(entry.sls.quotienten, this.style.sls.details, this.style.sls.quotientenDetails)" :key="q">
-        {{ value.toFixed(2) }}
+      <!-- Daten HN -->
+      <td class="hidden"></td>
+      <td>
+        <DataBar :current="entry.hn.sitze" :max="data.helper.hn.maxSitze" colour="green" />
+      </td>
+      <td>
+        <DataBar v-if="entry.hn.patt === true" :current="entry.hn.pattaufloesung" :max="data.helper.hn.maxPattaufloesung" :decimals="2" colour="yellow" />
+      </td>
+      <td v-show="this.style.hn.details">
+        <DataBar :current="entry.hn.sitzeGanz" :max="data.helper.hn.maxSitzeGanz" colour="green" />
+      </td>
+      <td class="right" v-show="this.style.hn.details">
+        {{ formatDecimal(entry.hn.sitzeRest, 4) }}
+      </td>
+      <td class="centered" v-show="this.style.hn.details">
+        {{ entry.hn.rangRest }}.
+      </td>
+      <td class="right" v-show="this.style.hn.details" :class="entry.hn.restsitz > 0 ? (entry.hn.patt === false ? 'correct' : 'patt') : ''">
+        {{ entry.hn.restsitz }}
+      </td>
+      <td class="centered" v-show="this.style.hn.details" :class="entry.hn.patt === true && entry.hn.restsitz > 0 ? 'patt' : ''">
+        {{ formatYesNo(entry.hn.patt) }}
+      </td>
+      <td class="right" v-show="this.style.hn.details">
+        {{ formatPercent(entry.hn.losChance) }}
+      </td>
+      <td class="right" v-show="this.style.hn.details">
+        {{ entry.hn.stimmenGelost }}
+      </td>
+      <td class="centered" v-show="this.style.hn.details">
+        {{ formatYesNo(entry.hn.pattgewinn) }}
       </td>
 
-      <td class="right" v-for="[q, value] in dataView(entry.sls.raenge, this.style.sls.details, this.style.sls.rangDetails)" :key="q">
-        {{ value }}.
-      </td>
+      <!-- Daten SLS + Daten dH -->
+      <template v-for="{ dataKey } of quotientenVerfahrenTabelle" :key="dataKey">
+        <td class="hidden"></td>
+        <td :class="entry[dataKey].qkVerletzt === true ? 'false' : ''">
+          <DataBar :current="entry[dataKey].sitzeGesamt" :max="data.helper[dataKey].maxSitzeGesamt" colour="green" />
+        </td>
+        <td :class="entry[dataKey].qkVerletzt === true ? 'false' : ''">
+          <DataBar v-if="entry[dataKey].patt === true" :current="entry[dataKey].pattaufloesung" :max="data.helper[dataKey].maxPattaufloesung" colour="yellow" :decimals="2" />
+        </td>
+        <td class="right" v-for="[q, value] in dataView(entry[dataKey].quotienten, this.style[dataKey].details, this.style[dataKey].quotientenDetails)" :key="q"
+          :class="styleSitzeQuotienten(entry[dataKey].sitze.get(q))"
+        >
+          {{ value.toFixed(2) }}
+        </td>
+        <td class="right" v-for="[q, value] in dataView(entry[dataKey].raenge, this.style[dataKey].details, this.style[dataKey].rangDetails)" :key="q"
+          :class="styleSitzeQuotienten(entry[dataKey].sitze.get(q))"
+        >
+          {{ value }}.
+        </td>
+        <td class="right" v-for="[q, value] in dataView(entry[dataKey].sitze, this.style[dataKey].details, this.style[dataKey].sitzeDetails)" :key="q"
+          :class="styleSitzeQuotienten(value)"
+        >
+          {{ value }}
+        </td>
+        <td class="centered" v-show="this.style[dataKey].details" :class="entry[dataKey].patt === true ? 'patt' : ''">
+          {{ formatYesNo(entry[dataKey].patt) }}
+        </td>
+        <td class="right" v-show="this.style[dataKey].details && this.style[dataKey].pattDetails">
+          {{ formatPercent(entry[dataKey].losChance) }}
+        </td>
+        <td class="right" v-show="this.style[dataKey].details && this.style[dataKey].pattDetails">
+          {{ entry[dataKey].stimmenGelost }}
+        </td>
+        <td class="centered" v-show="this.style[dataKey].details && this.style[dataKey].pattDetails">
+          {{ formatYesNo(entry[dataKey].pattgewinn) }}
+        </td>
+        <td class="centered" v-show="this.style[dataKey].details">
+          {{ formatYesNo(entry[dataKey].qkVerletzt) }}
+        </td>
+      </template>
+    </tr>
 
-      <td class="right" v-for="[q, value] in dataView(entry.sls.sitze, this.style.sls.details, this.style.sls.sitzeDetails)" :key="q">
-        {{ value }}
-      </td>
-
-      <td class="centered" v-if="this.style.sls.details">
-        {{ entry.sls.patt ? "ja" : "nein" }}
-      </td>
-      <td class="right" v-if="this.style.sls.details && this.style.sls.pattDetails">
-        {{ Math.round(entry.sls.losChance * 100) + " %" }}
-      </td>
-      <td class="right" v-if="this.style.sls.details && this.style.sls.pattDetails">
-        {{ entry.sls.stimmenGelost }}
-      </td>
-      <td class="centered" v-if="this.style.sls.details && this.style.sls.pattDetails">
-        {{ entry.sls.pattgewinn ? "ja" : "nein" }}
-      </td>
-      <td class="centered" v-if="this.style.sls.details">
-        {{ entry.sls.qkVerletzt ? "ja" : "nein" }}
+    <!-- Button Partei hinzufügen -->
+    <tr>
+      <td>
+        <Button type="button" severity="secondary" label="neue Partei" icon="pi pi-plus" @click="showNewDialog" outlined rounded />
       </td>
     </tr>
   </tbody>
-  <tfoot>
-    <tr class="bold">
-      <td>{{ data.ergebnisse.sls.summeSitzeGesamt }}</td>
-      <td>{{ data.ergebnisse.sls.summePattaufloesung }}</td>
-      <td v-if="this.style.sls.details" :colspan="this.style.sls.quotientenDetails === true ? 19 : 1"></td>
-      <td v-if="this.style.sls.details" :colspan="this.style.sls.rangDetails === true ? 19 : 1"></td>
-      <td v-if="this.style.sls.details" :colspan="this.style.sls.sitzeDetails === true ? 19 : 1"></td>
-      <td v-if="this.style.sls.details">{{ data.ergebnisse.sls.summePatt }}</td>
-      <td v-if="this.style.sls.details && this.style.sls.pattDetails">{{ data.ergebnisse.sls.summeLosChance }}</td>
-      <td v-if="this.style.sls.details && this.style.sls.pattDetails"></td>
-      <td v-if="this.style.sls.details && this.style.sls.pattDetails"></td>
-      <td v-if="this.style.sls.details">{{ data.ergebnisse.sls.summeQkVerletzt }}</td>
+  <tfoot class="bold header-info">
+    <tr class="bold right">
+      <!-- Footer Info -->
+      <td class="left">Summe</td>
+      <td :class="summeHauptorganKorrekt">
+        {{ data.ergebnisse.summeSitzeHauptorgan }}
+      </td>
+      <td></td>
+      <td>
+        {{ data.ergebnisse.summeProporzgenaueZahlAusschuss }}
+      </td>
+      <td colspan="5"></td>
+
+      <!-- Footer HN -->
+      <td class="hidden"></td>
+      <td>{{ data.ergebnisse.hn.summeSitze }}</td>
+      <td>{{ data.ergebnisse.hn.summePattaufloesung }}</td>
+      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeSitzeGanz }}</td>
+      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeSitzeRest }}</td>
+      <td v-show="this.style.hn.details"></td>
+      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeRestsitze }}</td>
+      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summePatt }}</td>
+      <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeLosChance }}</td>
+      <td v-show="this.style.hn.details"></td>
+      <td v-show="this.style.hn.details"></td>
+
+      <!-- Footer SLS + Footer dH-->
+      <template v-for="{ dataKey } of quotientenVerfahrenTabelle" :key="dataKey">
+        <td class="hidden"></td>
+        <td>{{ data.ergebnisse[dataKey].summeSitzeGesamt }}</td>
+        <td :class="Math.round(data.ergebnisse[dataKey].summeSitzeGesamt + data.ergebnisse[dataKey].summePattaufloesung) != startConfig.sitzeAusschuss ? 'false' : ''">
+          {{ data.ergebnisse[dataKey].summePattaufloesung }}
+        </td>
+        <td v-show="this.style[dataKey].details" :colspan="this.style[dataKey].quotientenDetails === true ? 19 : 1"></td>
+        <td v-show="this.style[dataKey].details" :colspan="this.style[dataKey].rangDetails === true ? 19 : 1"></td>
+        <td v-show="this.style[dataKey].details" :colspan="this.style[dataKey].sitzeDetails === true ? 19 : 1"></td>
+        <td v-show="this.style[dataKey].details">{{ data.ergebnisse[dataKey].summePatt }}</td>
+        <td v-show="this.style[dataKey].details && this.style[dataKey].pattDetails">{{ data.ergebnisse[dataKey].summeLosChance }}</td>
+        <td v-show="this.style[dataKey].details && this.style[dataKey].pattDetails"></td>
+        <td v-show="this.style[dataKey].details && this.style[dataKey].pattDetails"></td>
+        <td v-show="this.style[dataKey].details">{{ data.ergebnisse[dataKey].summeQkVerletzt }}</td>
+      </template>
     </tr>
   </tfoot>
 </table>
+
+<EditDialog v-model:isVisible="editDialogVisible" :isNew="editDialogNew" ref="dialog" @update-item="updateItem" />
 </template>
 
 <style>
 @import url("../assets/css/theme-colours.css");
 
+table {
+  border-collapse: collapse;
+  font-size: 11pt;
+}
+
+td, th {
+  padding: 6px;
+}
+
+thead th, tfoot td {
+  border: 1px solid var(--table-row-odd);
+}
+
+table tbody td {
+  border-width: 0 2px;
+  border-style: solid;
+  border-color: var(--table-row-odd);
+}
+
+table tbody tr:nth-child(odd) {
+  background-color: var(--table-row-odd);
+}
+
+.relative {
+  position: relative;
+}
+
+.expand-button {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
 .hidden {
   width: 1rem;
-  background-color: var(--surface-overlay);
-  border-top: none;
-  border-bottom: none;
+  background-color: Canvas;
+  border: none;
 }
 
 .th-empty-top-right-corner {
-  border-top: none;
-  border-right: none;
-  border-bottom: none;
-}
-
-.no-pad {
-  padding: 0;
+  background-color: Canvas;
+  border: none;
 }
 
 .cell-pad {
   padding: 0.375rem 0.5rem;
 }
 
+.left {
+  text-align: left;
+}
+
 .centered {
   text-align: center;
+}
+
+.right {
+  text-align: right;
+}
+
+.bold {
+  font-weight: bold;
 }
 
 .correct {
   background-color: var(--green-400);
 }
 
+.patt {
+  background-color: var(--yellow-400);
+}
+
 .false {
   background-color: var(--red-500);
 }
 
-td[data-pc-section="footercell"] {
-  text-align: right;
+.keine-ag {
+  background-clip: content-box;
+  background-color: var(--surface-200);
 }
 
-td .right {
-  text-align: right !important;
+.header-info {
+  background-color: var(--surface-300);
 }
 
 .header-hn {

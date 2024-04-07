@@ -1,36 +1,42 @@
 <script>
-import Ausschusskalkulator from "./components/Ausschusskalkulator.vue";
+import InputSwitch from 'primevue/inputswitch'
+
+import Ausschusskalkulator from "./components/Ausschusskalkulator.vue"
 
 export default {
   name: "app",
-  components: { Ausschusskalkulator },
+  components: { Ausschusskalkulator, InputSwitch },
   data() {
     return {
       darkMode: false,
     }
   },
+  watch: {
+    darkMode(newValue, oldValue) {
+      this.$primevue.changeTheme(
+        `aura-${oldValue === true ? 'dark' : 'light'}-cyan`,
+        `aura-${newValue === true ? 'dark' : 'light'}-cyan`,
+        'theme-link', () => {}
+      )
+    }
+  }
 };
 </script>
 
 <template>
-  <div id="app" :class="this.darkMode ? 'dark' : ''">
-    <input type="checkbox" role="switch" class='theme-switch' v-model="darkMode" />
-    <Ausschusskalkulator />
-  </div>
+<div id="theme-switcher">
+  <i class="pi pi-sun"></i>
+  <InputSwitch v-model="darkMode" v-tooltip.left="'Dark Mode'" aria-label="Dark Mode" />
+  <i class="pi pi-moon"></i>
+</div>
+<Ausschusskalkulator />
 </template>
 
-<style>
-@import url("assets/css/theme-colours.css");
-
-#app {
-  background-color: var(--app-background-color);
-}
-
-body {
-  margin: 0;
-}
-
-* {
-  font-family: sans-serif;
+<style scoped>
+#theme-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: 0.5rem;
 }
 </style>

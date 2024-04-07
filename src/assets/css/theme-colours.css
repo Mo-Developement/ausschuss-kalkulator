@@ -4,9 +4,9 @@
     --text-light: #FFFFFF;
     --text-dark: #000000;
 
-    --table-header: #A5A5A5;
+    --table-header: var(--gray-400);
     --table-cell-separator: #000000;
-    --table-row-odd: #D9D9D9;
+    --table-row-odd: var(--surface-50);
     --table-row-even: #FFFFFF;
 
     --highlight-hn: #4472C4;
