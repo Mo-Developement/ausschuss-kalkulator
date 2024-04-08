@@ -18,3 +18,8 @@ export const quotientenVerfahrenTabelle = Object.freeze([
     { dataKey: "sls", name: "Sainte-Laguë/<wbr>Schepers" },
     { dataKey: "dh", name: "d'Hondt" }
 ])
+
+export const agTabs = Object.freeze([
+    { label: "ohne AG", icon: "pi pi-user" },
+    { label: "mit AG", icon: "pi pi-users" }
+])

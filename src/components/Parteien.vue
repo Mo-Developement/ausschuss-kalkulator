@@ -1,17 +1,18 @@
 <script>
-import Button from 'primevue/button'
+import Button from "primevue/button"
+import TabMenu from "primevue/tabmenu"
 
 import DataBar from "./DataBar.vue"
 import EditDialog from "./EditDialog.vue"
 
-import { useState } from "../store/index.js"
-import { sitzStatus, quotientenVerfahrenTabelle } from '@/store/enums'
+import { useState } from "@/store/index.js"
+import { agTabs, sitzStatus, quotientenVerfahrenTabelle } from "@/store/enums"
 
 export default {
   name: 'ParteiDaten',
   setup() {
     const { deleteItem, clear, loadDefaults, neuePartei, updateItem, data, startConfig } = useState()
-    return { deleteItem, clear, loadDefaults, neuePartei, updateItem, data, startConfig, quotientenVerfahrenTabelle }
+    return { deleteItem, clear, loadDefaults, neuePartei, updateItem, completeData: data, startConfig, agTabs, quotientenVerfahrenTabelle }
   },
   data() {
     return {
@@ -34,15 +35,17 @@ export default {
           pattDetails: false
         }
       },
+      activeTab: 0,
       editDialogVisible: false,
       editDialogNew: true,
     }
   },
   computed: {
-    summeHauptorganKorrekt() {
-      return [
-        this.data.ergebnisse.summeSitzeHauptorgan == this.startConfig.sitzeHauptorgan ? 'correct' : 'false'
-      ]
+    ohneAg() {
+      return this.activeTab === 0
+    },
+    data() {
+      return this.ohneAg ? this.completeData : null
     },
   },
   methods: {
@@ -98,17 +101,19 @@ export default {
       return value + "."
     },
   },
-  components: { Button, DataBar, EditDialog }
+  components: { Button, DataBar, EditDialog, TabMenu }
 }
 </script>
 
 <template>
+<TabMenu v-model:activeIndex="activeTab" :model="agTabs" />
+
 <table>
   <thead class="header-info">
     <tr class="bold centered">
       <!-- Header Info -->
       <th colspan="3">
-        Zusammensetzung Hauptorgan<br>(ohne Ausschussgemeinschaften)
+        Zusammensetzung Hauptorgan<br>({{ this.ohneAg ? "ohne" : "mit" }} Ausschussgemeinschaften)
       </th>
       <th colspan="2">
         Info
@@ -323,7 +328,7 @@ export default {
     <tr class="bold right">
       <!-- Footer Info -->
       <td class="left">Summe</td>
-      <td :class="summeHauptorganKorrekt">
+      <td :class="this.data.ergebnisse.summeSitzeHauptorgan == this.startConfig.sitzeHauptorgan ? 'correct' : 'false'">
         {{ data.ergebnisse.summeSitzeHauptorgan }}
       </td>
       <td></td>
