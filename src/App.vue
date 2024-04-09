@@ -1,9 +1,15 @@
 <script>
 import InputSwitch from 'primevue/inputswitch'
+import Menubar from 'primevue/menubar'
+
+import { routes } from "@/router.js"
 
 export default {
   name: "app",
-  components: { InputSwitch },
+  components: { InputSwitch, Menubar },
+  setup() {
+    return { routes }
+  },
   data() {
     return {
       darkMode: false,
@@ -18,23 +24,28 @@ export default {
       )
     }
   }
-};
+}
 </script>
 
 <template>
-<div id="top">
-  <div id="navigation">
-    <RouterLink to="/">Start</RouterLink>
-    <span> - </span>
-    <RouterLink to="/kalkulator">Ausschusskalkulator</RouterLink>
-  </div>
+<Menubar :model="routes">
+  <template #item="{ item, props }">
+    <RouterLink v-slot="{ href, navigate }" :to="item.path" custom>
+      <a :href="href" v-bind="props.action" @click="navigate">
+        <span :class="item.icon" />
+        <span>{{ item.name }}</span>
+      </a>
+    </RouterLink>
+  </template>
 
-  <div id="theme-switcher">
-    <i class="pi pi-sun"></i>
-    <InputSwitch v-model="darkMode" v-tooltip.left="'Dark Mode'" aria-label="Dark Mode" />
-    <i class="pi pi-moon"></i>
-  </div>
-</div>
+  <template #end>
+    <div id="theme-switcher">
+      <i class="pi pi-sun"></i>
+      <InputSwitch v-model="darkMode" v-tooltip.left="'Dark Mode'" aria-label="Dark Mode" />
+      <i class="pi pi-moon"></i>
+    </div>
+  </template>
+</Menubar>
 
 <main>
   <RouterView />
@@ -42,6 +53,10 @@ export default {
 </template>
 
 <style scoped>
+.p-menuitem-link {
+  gap: 0.5rem;
+}
+
 #theme-switcher {
   display: flex;
   align-items: center;
@@ -49,8 +64,7 @@ export default {
   gap: 0.5rem;
 }
 
-#top {
-  display: flex;
-  justify-content: space-between;
+main {
+  margin-top: 24px;
 }
 </style>

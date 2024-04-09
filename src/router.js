@@ -6,12 +6,14 @@ import Startseite from './views/Startseite.vue'
 const routes = [
     {
         path: '/',
-        name: 'Home',
+        name: 'Startseite',
+        icon: 'pi pi-home',
         component: Startseite
     },
     {
         path: '/kalkulator',
-        name: 'Kalkulator',
+        name: 'Ausschusskalkulator',
+        icon: 'pi pi-calculator',
         component: Ausschusskalkulator
     }
 ]
@@ -25,4 +27,7 @@ const router = createRouter({
     routes
 })
 
-export default router
+export {
+    router as default,
+    routes
+}
