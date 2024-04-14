@@ -18,7 +18,7 @@ function rankDuplicate(countMap) {
         rankMap.set(num, rank);
         rank += countMap.get(num);
     });
-  
+
     return rankMap
 }
 
@@ -77,9 +77,8 @@ function newStateInstance() {
             neu[name].losChance = computed(() => neu[name].patt.value === true
                 ? (startConfig.sitzeAusschuss - data[agModus].ergebnisse[name].summeSitzeGesamt) / data[agModus].ergebnisse[name].summePatt
                 : 0)
-            neu[name].stimmenGelost = computed(() => (neu[name].patt.value === true && startConfig.pattAufloesung === pattAufloesungEnum.STIMMEN.value)
-                ? neu.stimmen : 0)
-            neu[name].pattgewinn = computed(() => data[agModus].helper[name].raengeStimmenGelost.get(neu.stimmen.value) <= (startConfig.sitzeAusschuss - data[agModus].ergebnisse[name].summeSitzeGesamt))
+            neu[name].stimmenGelost = computed(() => (neu[name].patt.value === true && (startConfig.pattAufloesung === pattAufloesungEnum.STIMMEN.value)) ? neu.stimmen.value : 0)
+            neu[name].pattgewinn = computed(() => data[agModus].helper[name].raengeStimmenGelost.get(neu[name].stimmenGelost.value) <= (startConfig.sitzeAusschuss - data[agModus].ergebnisse[name].summeSitzeGesamt))
             neu[name].pattaufloesung = computed(() => neu[name].patt.value === false ? 0
                 : (startConfig.pattAufloesung === pattAufloesungEnum.LOS.value
                     ? neu[name].losChance.value
@@ -152,7 +151,7 @@ function newStateInstance() {
         data[agModus].helper[name].maxPattaufloesung = computed(() => data[agModus].parteien.reduce((max, p) => Math.max(max, p[name].pattaufloesung), 0))
         data[agModus].helper[name].vorkommenQuotienten = computed(() => countOccurences(data[agModus].parteien.reduce((arr, p) => arr.concat(...p[name].quotienten.values()), [])))
         data[agModus].helper[name].raenge = computed(() => rankDuplicate(data[agModus].helper[name].vorkommenQuotienten))
-        data[agModus].helper[name].raengeStimmenGelost = computed(() => rankDuplicate(countOccurences(data[agModus].parteien.map(p => p[name].stimmenGelost.value))))
+        data[agModus].helper[name].raengeStimmenGelost = computed(() => rankDuplicate(countOccurences(data[agModus].parteien.map(p => p[name].stimmenGelost))))
     }
 
     const ags = computed(() => {
@@ -165,7 +164,7 @@ function newStateInstance() {
                     `AG ${id} [${agNamen}]`,
                     parteien.reduce((sum, p) => sum + p.sitzeHauptorgan, 0),
                     null,
-                    parteien.reduce((sum, p) => sum + p.stimmen, 0),
+                    0,
                     "mitAG"
                 )
             })
