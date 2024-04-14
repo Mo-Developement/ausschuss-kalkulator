@@ -25,7 +25,7 @@ function rankDuplicate(countMap) {
 function newStateInstance() {
     let count = 0
 
-    function neuePartei(name, sitzeHauptorganN, ag=null, stimmen=undefined) {
+    function neuePartei(name, sitzeHauptorganN, ag=null, stimmen=undefined, agModus="ohneAG") {
         const neu = {
             id: count,
 
@@ -35,7 +35,7 @@ function newStateInstance() {
             stimmen: ref(stimmen),
         }
 
-        neu.proporzgenaueZahlAusschuss = computed(() => neu.sitzeHauptorgan.value / data.ergebnisse.summeSitzeHauptorgan * startConfig.sitzeAusschuss)
+        neu.proporzgenaueZahlAusschuss = computed(() => neu.sitzeHauptorgan.value / data[agModus].ergebnisse.summeSitzeHauptorgan * startConfig.sitzeAusschuss)
         neu.sicherVertreten = computed(() => neu.proporzgenaueZahlAusschuss.value >= 1 || neu.sitzeHauptorgan.value > (startConfig.sitzeHauptorgan / (1 + startConfig.sitzeAusschuss)))
         neu.agMöglich = computed(() => !(neu.sicherVertreten.value === true || neu.sitzeHauptorgan.value === 0))
         neu.quotenKriterium = computed(() => !Number.isInteger(neu.proporzgenaueZahlAusschuss.value)
@@ -45,15 +45,15 @@ function newStateInstance() {
         neu.hn = {}
         neu.hn.sitzeGanz = computed(() => Math.floor(neu.proporzgenaueZahlAusschuss.value))
         neu.hn.sitzeRest = computed(() => +(neu.proporzgenaueZahlAusschuss.value - neu.hn.sitzeGanz.value).toFixed(4))
-        neu.hn.rangRest = computed(() => data.helper.hn.raengeRest.get(neu.hn.sitzeRest.value))
-        neu.hn.restsitz = computed(() => neu.hn.rangRest.value <= data.ergebnisse.hn.summeSitzeRest ? 1 : 0)
+        neu.hn.rangRest = computed(() => data[agModus].helper.hn.raengeRest.get(neu.hn.sitzeRest.value))
+        neu.hn.restsitz = computed(() => neu.hn.rangRest.value <= data[agModus].ergebnisse.hn.summeSitzeRest ? 1 : 0)
         neu.hn.patt = computed(() => (neu.hn.restsitz.value === 1) && 
-            ((data.helper.hn.vorkommenRaenge.get(neu.hn.sitzeRest.value) + neu.hn.rangRest.value - 1) > data.ergebnisse.hn.summeSitzeRest))
+            ((data[agModus].helper.hn.vorkommenRaenge.get(neu.hn.sitzeRest.value) + neu.hn.rangRest.value - 1) > data[agModus].ergebnisse.hn.summeSitzeRest))
         neu.hn.sitze = computed(() => neu.hn.sitzeGanz.value + (neu.hn.patt.value === false ? neu.hn.restsitz.value : 0))
-        neu.hn.losChance = computed(() => neu.hn.patt.value === false ? 0 : (startConfig.sitzeAusschuss - data.ergebnisse.hn.summeSitze) / data.ergebnisse.hn.summePatt)
+        neu.hn.losChance = computed(() => neu.hn.patt.value === false ? 0 : (startConfig.sitzeAusschuss - data[agModus].ergebnisse.hn.summeSitze) / data[agModus].ergebnisse.hn.summePatt)
         neu.hn.stimmenGelost = computed(() => (neu.hn.patt.value === true && startConfig.pattAufloesung === pattAufloesungEnum.STIMMEN.value)
             ? neu.stimmen : 0)
-        neu.hn.pattgewinn = computed(() => data.helper.hn.raengeStimmen.get(neu.stimmen.value) <= (startConfig.sitzeAusschuss - data.ergebnisse.hn.summeSitze))
+        neu.hn.pattgewinn = computed(() => data[agModus].helper.hn.raengeStimmen.get(neu.stimmen.value) <= (startConfig.sitzeAusschuss - data[agModus].ergebnisse.hn.summeSitze))
         neu.hn.pattaufloesung = computed(() => neu.hn.patt.value === false ? 0
             : (startConfig.pattAufloesung === pattAufloesungEnum.LOS.value
                 ? neu.hn.losChance.value
@@ -62,24 +62,24 @@ function newStateInstance() {
         function neuesQuotientenVerfahren(name) {
             neu[name] = {}
 
-            neu[name].quotienten = computed(() => new Map(data.helper[name].quotienten.map(q => [
+            neu[name].quotienten = computed(() => new Map(data[agModus].helper[name].quotienten.map(q => [
                 q, neu.sitzeHauptorgan.value / q])))
-            neu[name].raenge = computed(() => new Map(data.helper[name].quotienten.map(q => [q,
-                data.helper[name].raenge.get(neu[name].quotienten.value.get(q))])))
-            neu[name].sitze = computed(() => new Map(data.helper[name].quotienten.map(q => [q,
+            neu[name].raenge = computed(() => new Map(data[agModus].helper[name].quotienten.map(q => [q,
+                data[agModus].helper[name].raenge.get(neu[name].quotienten.value.get(q))])))
+            neu[name].sitze = computed(() => new Map(data[agModus].helper[name].quotienten.map(q => [q,
                 neu[name].raenge.value.get(q) <= startConfig.sitzeAusschuss
-                    ? (neu[name].raenge.value.get(q) + data.helper[name].vorkommenQuotienten.get(neu[name].quotienten.value.get(q)) - 1 <= startConfig.sitzeAusschuss
+                    ? (neu[name].raenge.value.get(q) + data[agModus].helper[name].vorkommenQuotienten.get(neu[name].quotienten.value.get(q)) - 1 <= startConfig.sitzeAusschuss
                         ? sitzStatus.SITZ
                         : sitzStatus.PATT)
                     : sitzStatus.LEER])))
             neu[name].sitzeGesamt = computed(() => [...neu[name].sitze.value.values()].filter(value => value === sitzStatus.SITZ).length)
             neu[name].patt = computed(() => [...neu[name].sitze.value.values()].filter(value => value === sitzStatus.PATT).length > 0)
             neu[name].losChance = computed(() => neu[name].patt.value === true
-                ? (startConfig.sitzeAusschuss - data.ergebnisse[name].summeSitzeGesamt) / data.ergebnisse[name].summePatt
+                ? (startConfig.sitzeAusschuss - data[agModus].ergebnisse[name].summeSitzeGesamt) / data[agModus].ergebnisse[name].summePatt
                 : 0)
             neu[name].stimmenGelost = computed(() => (neu[name].patt.value === true && startConfig.pattAufloesung === pattAufloesungEnum.STIMMEN.value)
                 ? neu.stimmen : 0)
-            neu[name].pattgewinn = computed(() => data.helper[name].raengeStimmenGelost.get(neu.stimmen.value) <= (startConfig.sitzeAusschuss - data.ergebnisse[name].summeSitzeGesamt))
+            neu[name].pattgewinn = computed(() => data[agModus].helper[name].raengeStimmenGelost.get(neu.stimmen.value) <= (startConfig.sitzeAusschuss - data[agModus].ergebnisse[name].summeSitzeGesamt))
             neu[name].pattaufloesung = computed(() => neu[name].patt.value === false ? 0
                 : (startConfig.pattAufloesung === pattAufloesungEnum.LOS.value
                     ? neu[name].losChance.value
@@ -96,79 +96,108 @@ function newStateInstance() {
         return neu
     }
 
-    const parteien = ref([])
-
     const startConfig = reactive({
         sitzeHauptorgan: 0,
         sitzeAusschuss: 0,
         pattAufloesung: '',
     })
 
-    const data = reactive({
-        parteien,
-        ergebnisse: {
-            summeSitzeHauptorgan: computed(() => parteien.value.reduce((sum, p) => sum + p.sitzeHauptorgan, 0)),
-            summeProporzgenaueZahlAusschuss: computed(() => Math.round(parteien.value.reduce((sum, p) => sum + p.proporzgenaueZahlAusschuss, 0))),
-        },
-        helper: {
-            maxProporzgenaueZahlAusschuss: computed(() => parteien.value.reduce((max, p) => Math.max(max, p.proporzgenaueZahlAusschuss), 0)),
-            raengeStimmen: computed(() => rankDuplicate(countOccurences(parteien.value.map(p => p.stimmen)))),
+    const data = reactive({})
+    
+    function setupInitialData(agModus, parteien) {
+        data[agModus] = {
+            parteien: parteien,
+            ergebnisse: {
+                summeSitzeHauptorgan: computed(() => data[agModus].parteien.reduce((sum, p) => sum + p.sitzeHauptorgan, 0)),
+                summeProporzgenaueZahlAusschuss: computed(() => data[agModus].parteien.reduce((sum, p) => sum + p.proporzgenaueZahlAusschuss, 0)),
+            },
+            helper: {
+                maxProporzgenaueZahlAusschuss: computed(() => data[agModus].parteien.reduce((max, p) => Math.max(max, p.proporzgenaueZahlAusschuss), 0)),
+                raengeStimmen: computed(() => rankDuplicate(countOccurences(data[agModus].parteien.map(p => p.stimmen)))),
+            }
         }
+    }
+
+    function setupHareNiemeyerVerfahren(agModus) {
+        data[agModus].ergebnisse.hn = {}
+        data[agModus].ergebnisse.hn.summeSitzeGanz = computed(() => data[agModus].parteien.reduce((sum, p) => sum + p.hn.sitzeGanz, 0))
+        data[agModus].ergebnisse.hn.summeSitzeRest = computed(() => Math.round(data[agModus].parteien.reduce((sum, p) => sum + +p.hn.sitzeRest, 0)))
+        data[agModus].ergebnisse.hn.summePatt = computed(() => data[agModus].parteien.filter(p => p.hn.patt === true).length)
+        data[agModus].ergebnisse.hn.summeSitze = computed(() => data[agModus].parteien.reduce((sum, p) => sum + p.hn.sitze, 0))
+        data[agModus].ergebnisse.hn.summeLosChance = computed(() => data[agModus].parteien.reduce((sum, p) => sum + p.hn.losChance, 0))
+        data[agModus].ergebnisse.hn.summePattaufloesung = computed(() => Math.round(data[agModus].parteien.reduce((sum, p) => sum + p.hn.pattaufloesung, 0)))
+
+        data[agModus].helper.hn = {}
+        data[agModus].helper.hn.maxSitzeGanz = computed(() => data[agModus].parteien.reduce((max, p) => Math.max(max, p.hn.sitzeGanz), 0))
+        data[agModus].helper.hn.vorkommenRaenge = computed(() => countOccurences(data[agModus].parteien.map(p => p.hn.sitzeRest)))
+        data[agModus].helper.hn.raengeRest = computed(() => rankDuplicate(data[agModus].helper.hn.vorkommenRaenge))
+        data[agModus].helper.hn.summeRestsitzeGesamt = computed(() => data[agModus].parteien.reduce((sum, p) => sum + p.hn.restsitz, 0))
+        data[agModus].helper.hn.maxSitze = computed(() => data[agModus].parteien.reduce((max, p) => Math.max(max, p.hn.sitze), 0))
+        data[agModus].helper.hn.raengeStimmen = computed(() => rankDuplicate(countOccurences(data[agModus].parteien.map(p => p.hn.stimmenGelost.value))))
+        data[agModus].helper.hn.maxPattaufloesung = computed(() => data[agModus].parteien.reduce((max, p) => Math.max(max, p.hn.pattaufloesung), 0))
+        data[agModus].ergebnisse.hn.summeRestsitze = computed(() => data[agModus].helper.hn.summeRestsitzeGesamt - data[agModus].ergebnisse.hn.summePatt)
+    }
+
+    function setupQuotientenVerfahren(agModus, name, quotienten) {
+        data[agModus].ergebnisse[name] = {}
+        data[agModus].ergebnisse[name].summeSitzeGesamt = computed(() => Math.round(data[agModus].parteien.reduce((sum, p) => sum + p[name].sitzeGesamt, 0)))
+        data[agModus].ergebnisse[name].summePatt = computed(() => data[agModus].parteien.filter(p => p[name].patt === true).length)
+        data[agModus].ergebnisse[name].summeLosChance = computed(() => data[agModus].parteien.reduce((sum, p) => sum + p[name].losChance, 0))
+        data[agModus].ergebnisse[name].summePattaufloesung = computed(() => data[agModus].parteien.reduce((sum, p) => sum + p[name].pattaufloesung, 0))
+        data[agModus].ergebnisse[name].summeQkVerletzt = computed(() => data[agModus].parteien.filter(p => p[name].qkVerletzt === true).length)
+
+        data[agModus].helper[name] = {}
+        data[agModus].helper[name].quotienten = quotienten
+        data[agModus].helper[name].maxSitzeGesamt = computed(() => data[agModus].parteien.reduce((max, p) => Math.max(max, p[name].sitzeGesamt), 0))
+        data[agModus].helper[name].maxPattaufloesung = computed(() => data[agModus].parteien.reduce((max, p) => Math.max(max, p[name].pattaufloesung), 0))
+        data[agModus].helper[name].vorkommenQuotienten = computed(() => countOccurences(data[agModus].parteien.reduce((arr, p) => arr.concat(...p[name].quotienten.values()), [])))
+        data[agModus].helper[name].raenge = computed(() => rankDuplicate(data[agModus].helper[name].vorkommenQuotienten))
+        data[agModus].helper[name].raengeStimmenGelost = computed(() => rankDuplicate(countOccurences(data[agModus].parteien.map(p => p[name].stimmenGelost.value))))
+    }
+
+    const ags = computed(() => {
+        const groupedByAgId = Object.groupBy(inputParteien.value.filter(p => p.ag !== null), ({ ag }) => ag)
+        return Object.entries(groupedByAgId)
+            .toSorted((a, b) => +a[0] - (+b[0]))  // AGs nach Nummer sortieren
+            .map(([id, parteien]) => {
+                const agNamen = parteien.map(p => p.name.substring(0, 3)).join(" ")
+                return neuePartei(
+                    `AG ${id} [${agNamen}]`,
+                    parteien.reduce((sum, p) => sum + p.sitzeHauptorgan, 0),
+                    null,
+                    parteien.reduce((sum, p) => sum + p.stimmen, 0),
+                    "mitAG"
+                )
+            })
     })
 
+    const inputParteien = ref([])
+    const ohneAgViewParteien = computed(() => inputParteien.value)
+    const agViewParteien = computed(() => inputParteien.value
+        .filter(p => p.ag === null)
+        .map(p => reactive(neuePartei(p.name, p.sitzeHauptorgan, p.ag, p.stimmen, "mitAG")))
+        .concat(reactive(ags.value)))
 
-    function setupHareNiemeyerVerfahren() {
-        data.ergebnisse.hn = {}
-        data.ergebnisse.hn.summeSitzeGanz = computed(() => parteien.value.reduce((sum, p) => sum + p.hn.sitzeGanz, 0))
-        data.ergebnisse.hn.summeSitzeRest = computed(() => Math.round(parteien.value.reduce((sum, p) => sum + +p.hn.sitzeRest, 0)))
-        data.ergebnisse.hn.summePatt = computed(() => parteien.value.filter(p => p.hn.patt === true).length)
-        data.ergebnisse.hn.summeSitze = computed(() => parteien.value.reduce((sum, p) => sum + p.hn.sitze, 0))
-        data.ergebnisse.hn.summeLosChance = computed(() => parteien.value.reduce((sum, p) => sum + p.hn.losChance, 0))
-        data.ergebnisse.hn.summePattaufloesung = computed(() => Math.round(parteien.value.reduce((sum, p) => sum + p.hn.pattaufloesung, 0)))
+    for (const agModus of ["ohneAG", "mitAG"]) {
+        const parteien = agModus === "ohneAG" ? ohneAgViewParteien : agViewParteien
 
-        data.helper.hn = {}
-        data.helper.hn.maxSitzeGanz = computed(() => parteien.value.reduce((max, p) => Math.max(max, p.hn.sitzeGanz), 0))
-        data.helper.hn.vorkommenRaenge = computed(() => countOccurences(parteien.value.map(p => p.hn.sitzeRest)))
-        data.helper.hn.raengeRest = computed(() => rankDuplicate(data.helper.hn.vorkommenRaenge))
-        data.helper.hn.summeRestsitzeGesamt = computed(() => parteien.value.reduce((sum, p) => sum + p.hn.restsitz, 0))
-        data.helper.hn.maxSitze = computed(() => parteien.value.reduce((max, p) => Math.max(max, p.hn.sitze), 0))
-        data.helper.hn.raengeStimmen = computed(() => rankDuplicate(countOccurences(parteien.value.map(p => p.hn.stimmenGelost.value))))
-        data.helper.hn.maxPattaufloesung = computed(() => parteien.value.reduce((max, p) => Math.max(max, p.hn.pattaufloesung), 0))
-        data.ergebnisse.hn.summeRestsitze = computed(() => data.helper.hn.summeRestsitzeGesamt - data.ergebnisse.hn.summePatt)
+        setupInitialData(agModus, parteien)
+        setupHareNiemeyerVerfahren(agModus)
+        setupQuotientenVerfahren(agModus, "sls", Array.from({ length: 19 }, (_, i) => i * 2 + 1))
+        setupQuotientenVerfahren(agModus, "dh", Array.from({ length: 19 }, (_, i) => i + 1))
     }
-
-    function setupQuotientenVerfahren(name, quotienten) {
-        data.ergebnisse[name] = {}
-        data.ergebnisse[name].summeSitzeGesamt = computed(() => Math.round(parteien.value.reduce((sum, p) => sum + p[name].sitzeGesamt, 0)))
-        data.ergebnisse[name].summePatt = computed(() => parteien.value.filter(p => p[name].patt === true).length)
-        data.ergebnisse[name].summeLosChance = computed(() => parteien.value.reduce((sum, p) => sum + p[name].losChance, 0))
-        data.ergebnisse[name].summePattaufloesung = computed(() => parteien.value.reduce((sum, p) => sum + p[name].pattaufloesung, 0))
-        data.ergebnisse[name].summeQkVerletzt = computed(() => parteien.value.filter(p => p[name].qkVerletzt === true).length)
-
-        data.helper[name] = {}
-        data.helper[name].quotienten = quotienten
-        data.helper[name].maxSitzeGesamt = computed(() => parteien.value.reduce((max, p) => Math.max(max, p[name].sitzeGesamt), 0))
-        data.helper[name].maxPattaufloesung = computed(() => parteien.value.reduce((max, p) => Math.max(max, p[name].pattaufloesung), 0))
-        data.helper[name].vorkommenQuotienten = computed(() => countOccurences(parteien.value.reduce((arr, p) => arr.concat(...p[name].quotienten.values()), [])))
-        data.helper[name].raenge = computed(() => rankDuplicate(data.helper[name].vorkommenQuotienten))
-        data.helper[name].raengeStimmenGelost = computed(() => rankDuplicate(countOccurences(parteien.value.map(p => p[name].stimmenGelost.value))))
-    }
-
-    setupHareNiemeyerVerfahren()
-    setupQuotientenVerfahren("sls", Array.from({ length: 19 }, (_, i) => i * 2 + 1))
-    setupQuotientenVerfahren("dh", Array.from({ length: 19 }, (_, i) => i + 1))
 
     function deleteItem(id) {
-        const idx = data.parteien.findIndex(item => item.id === id)
-        data.parteien.splice(idx, 1)
+        const idx = inputParteien.value.findIndex(item => item.id === id)
+        inputParteien.value.splice(idx, 1)
     }
 
     function updateItem(partei) {
-        const idx = data.parteien.findIndex(item => item.id === partei.id)
+        const idx = inputParteien.value.findIndex(item => item.id === partei.id)
         if (idx === -1) {
-            data.parteien.push(partei)
+            inputParteien.value.push(partei)
         } else {
-            data.parteien.splice(idx, 1, partei)
+            inputParteien.value.splice(idx, 1, partei)
         }
     }
 
@@ -177,7 +206,7 @@ function newStateInstance() {
         startConfig.sitzeAusschuss = 0
         startConfig.pattAufloesung = pattAufloesungEnum.LOS.value
 
-        parteien.value.splice(0)
+        inputParteien.value.splice(0)
     }
 
     function loadDefaults() {
@@ -187,7 +216,7 @@ function newStateInstance() {
         startConfig.sitzeAusschuss = 14 // 8 für SLS
         startConfig.pattAufloesung = pattAufloesungEnum.STIMMEN.value
 
-        data.parteien.push(
+        inputParteien.value.push(
             neuePartei("CSU", 20, null, 6543),
             neuePartei("GRÜNE", 16, null, 5432), // 20 für SL/S
             neuePartei("FREIE WÄHLER", 10, null, 4321),
@@ -197,7 +226,7 @@ function newStateInstance() {
             neuePartei("LINKE", 2, 2, 1111),
             neuePartei("ÖDP", 2, 1, 1000),
             neuePartei("Bayernpartei", 2, 2, 211),
-            neuePartei("FRANKEN", 2, 2, 987),
+            neuePartei("FRANKEN", 2, 1, 987),
             neuePartei("Tierschutzpartei", 1, 1, 182)
         )
     }

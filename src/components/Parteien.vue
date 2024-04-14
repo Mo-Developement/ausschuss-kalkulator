@@ -45,7 +45,7 @@ export default {
       return this.activeTab === 0
     },
     data() {
-      return this.ohneAg ? this.completeData : null
+      return this.ohneAg ? this.completeData["ohneAG"] : this.completeData["mitAG"]
     },
   },
   methods: {
@@ -106,7 +106,7 @@ export default {
 </script>
 
 <template>
-<TabMenu v-model:activeIndex="activeTab" :model="agTabs" />
+<TabMenu v-model:activeIndex="activeTab" :model="agTabs" style="width: max-content;" />
 
 <table>
   <thead class="header-info">
@@ -287,7 +287,7 @@ export default {
         <td class="right" v-for="[q, value] in dataView(entry[dataKey].quotienten, this.style[dataKey].details, this.style[dataKey].quotientenDetails)" :key="q"
           :class="styleSitzeQuotienten(entry[dataKey].sitze.get(q))"
         >
-          {{ value.toFixed(2) }}
+          {{ formatDecimal(value, 2) }}
         </td>
         <td class="right" v-for="[q, value] in dataView(entry[dataKey].raenge, this.style[dataKey].details, this.style[dataKey].rangDetails)" :key="q"
           :class="styleSitzeQuotienten(entry[dataKey].sitze.get(q))"
