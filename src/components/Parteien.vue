@@ -112,7 +112,7 @@ export default {
   <thead class="header-info">
     <tr class="bold centered">
       <!-- Header Info -->
-      <th colspan="3">
+      <th :colspan="ohneAg ? 3 : 2">
         Zusammensetzung Hauptorgan<br>({{ this.ohneAg ? "ohne" : "mit" }} Ausschussgemeinschaften)
       </th>
       <th colspan="2">
@@ -159,12 +159,18 @@ export default {
           Zulässig
         </th>
       </template>
+
+      <!-- Header Pattauflösung -->
+      <th class="hidden"></th>
+      <th colspan="2">
+        Pattauflösung
+      </th>
     </tr>
     <tr>
       <!-- Subheader Info -->
       <th>Partei/<wbr>Wählergruppe</th>
       <th>Sitze im Haupt&shy;organ</th>
-      <th>AG?</th>
+      <th v-show="ohneAg">AG?</th>
       <th>Proporz&shy;genaue Zahl Ausschuss</th>
       <th>Sicher vertreten?</th>
       <th>Quoten&shy;kriterium</th>
@@ -205,6 +211,11 @@ export default {
         <th :class="headerClass(dataKey)" class="centered" v-show="this.style[dataKey].details && this.style[dataKey].pattDetails">Patt&shy;gewinn</th>
         <th :class="headerClass(dataKey)" class="centered" v-show="this.style[dataKey].details">QK verletzt</th>
       </template>
+
+      <!-- Subheader Pattauflösung -->
+      <th class="hidden"></th>
+      <th>Partei/<wbr>Wählergruppe</th>
+      <th>Stimmen</th>
     </tr>
   </thead>
   <tbody>
@@ -212,15 +223,15 @@ export default {
       <!-- Daten Info -->
       <td>
         <div style="display: flex; align-items: center; gap: 6px;">
-          <Button icon="pi pi-pencil" severity="secondary" rounded outlined aria-label="Bearbeiten" @click="showEditDialog(entry)" />
-          <Button icon="pi pi-trash" severity="secondary" rounded outlined aria-label="Löschen" @click="deleteItem(entry.id)" />
+          <Button :disabled="!ohneAg" icon="pi pi-pencil" severity="secondary" rounded outlined aria-label="Bearbeiten" @click="showEditDialog(entry)" />
+          <Button :disabled="!ohneAg" icon="pi pi-trash" severity="secondary" rounded outlined aria-label="Löschen" @click="deleteItem(entry.id)" />
           {{ entry.name }}
         </div>
       </td>
       <td class="right">
         {{ entry.sitzeHauptorgan }}
       </td>
-      <td :class="!entry.agMöglich ? 'keine-ag' : ''">
+      <td v-show="ohneAg" :class="!entry.agMöglich ? 'keine-ag' : ''">
         {{ formatAG(entry.ag).replace(/ /g, '&nbsp;') }}
       </td>
       <td>
@@ -315,11 +326,16 @@ export default {
           {{ formatYesNo(entry[dataKey].qkVerletzt) }}
         </td>
       </template>
+
+      <!-- Daten Pattauflösung -->
+      <td class="hidden"></td>
+      <td>{{ entry.name }}</td>
+      <td class="right">{{ entry.stimmen }}</td>
     </tr>
 
     <!-- Button Partei hinzufügen -->
     <tr>
-      <td>
+      <td colspan="2">
         <Button type="button" severity="secondary" label="neue Partei" icon="pi pi-plus" @click="showNewDialog" outlined rounded />
       </td>
     </tr>
@@ -331,9 +347,9 @@ export default {
       <td :class="this.data.ergebnisse.summeSitzeHauptorgan == this.startConfig.sitzeHauptorgan ? 'correct' : 'false'">
         {{ data.ergebnisse.summeSitzeHauptorgan }}
       </td>
-      <td></td>
+      <td v-show="ohneAg"></td>
       <td>
-        {{ data.ergebnisse.summeProporzgenaueZahlAusschuss }}
+        {{ formatDecimal(data.ergebnisse.summeProporzgenaueZahlAusschuss) }}
       </td>
       <td colspan="5"></td>
 
@@ -366,6 +382,11 @@ export default {
         <td v-show="this.style[dataKey].details && this.style[dataKey].pattDetails"></td>
         <td v-show="this.style[dataKey].details">{{ data.ergebnisse[dataKey].summeQkVerletzt }}</td>
       </template>
+
+      <!-- Footer Pattauflösung -->
+      <th class="hidden"></th>
+      <th></th>
+      <th>{{ data.ergebnisse.summeStimmen }}</th>
     </tr>
   </tfoot>
 </table>

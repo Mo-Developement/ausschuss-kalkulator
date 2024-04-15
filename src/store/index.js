@@ -109,6 +109,7 @@ function newStateInstance() {
             ergebnisse: {
                 summeSitzeHauptorgan: computed(() => data[agModus].parteien.reduce((sum, p) => sum + p.sitzeHauptorgan, 0)),
                 summeProporzgenaueZahlAusschuss: computed(() => data[agModus].parteien.reduce((sum, p) => sum + p.proporzgenaueZahlAusschuss, 0)),
+                summeStimmen: computed(() => data[agModus].parteien.reduce((sum, p) => sum + p.stimmen, 0)),
             },
             helper: {
                 maxProporzgenaueZahlAusschuss: computed(() => data[agModus].parteien.reduce((max, p) => Math.max(max, p.proporzgenaueZahlAusschuss), 0)),
