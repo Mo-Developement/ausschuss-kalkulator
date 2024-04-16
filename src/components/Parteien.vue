@@ -78,7 +78,7 @@ export default {
       }
     },
     showNewDialog() {
-      this.$refs.dialog.setData(this.neuePartei())
+      this.$refs.dialog.setData(this.neuePartei("", 0))
       this.editDialogNew = true
       this.editDialogVisible = true
     },
