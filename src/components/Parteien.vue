@@ -5,14 +5,20 @@ import TabMenu from "primevue/tabmenu"
 import DataBar from "./DataBar.vue"
 import EditDialog from "./EditDialog.vue"
 
+import * as fmt from "@/utils/formatter.js"
+
 import { useState } from "@/store/index.js"
-import { agTabs, sitzStatus, quotientenVerfahrenTabelle } from "@/store/enums"
+import { agTabs, sitzStatus, quotientenVerfahrenTabelle } from "@/store/enums.js"
 
 export default {
   name: 'ParteiDaten',
   setup() {
     const { deleteItem, clear, loadDefaults, neuePartei, updateItem, data, startConfig } = useState()
-    return { deleteItem, clear, loadDefaults, neuePartei, updateItem, completeData: data, startConfig, agTabs, quotientenVerfahrenTabelle }
+    return {
+      fmt,
+      deleteItem, clear, loadDefaults, neuePartei, updateItem, completeData: data, startConfig,
+      agTabs, quotientenVerfahrenTabelle
+    }
   },
   data() {
     return {
@@ -82,24 +88,6 @@ export default {
       this.editDialogNew = false
       this.editDialogVisible = true
     },
-    formatAG(value) {
-      return value ? `AG ${value}` : ""
-    },
-    formatYesNo(value) {
-      return value === true ? "ja" : "nein"
-    },
-    formatOkNok(value) {
-      return value === true ? "OK" : "NOK"
-    },
-    formatDecimal(value, precision) {
-      return value.toFixed(precision).replace(/\./g, ",")
-    },
-    formatPercent(value) {
-      return Math.round(value * 100) + " %"
-    },
-    formatRank(value) {
-      return value + "."
-    },
   },
   components: { Button, DataBar, EditDialog, TabMenu }
 }
@@ -115,11 +103,14 @@ export default {
       <th :colspan="ohneAg ? 3 : 2">
         Zusammensetzung Hauptorgan<br>({{ this.ohneAg ? "ohne" : "mit" }} Ausschussgemeinschaften)
       </th>
-      <th colspan="2">
+      <th :colspan="ohneAg ? 2 : 1">
         Info
       </th>
       <th colspan="4">
         Zulässigkeit Verfahren
+      </th>
+      <th v-show="ohneAg" colspan="3">
+        Verlust letzter Sitz?
       </th>
 
       <!-- Header HN -->
@@ -169,14 +160,17 @@ export default {
     <tr>
       <!-- Subheader Info -->
       <th>Partei/<wbr>Wählergruppe</th>
-      <th>Sitze im Haupt&shy;organ</th>
+      <th>Sitze&nbsp;im Hauptorgan</th>
       <th v-show="ohneAg">AG?</th>
       <th>Proporz&shy;genaue Zahl Ausschuss</th>
-      <th>Sicher vertreten?</th>
+      <th v-show="ohneAg">Sicher vertreten?</th>
       <th>Quoten&shy;kriterium</th>
       <th class="header-hn">H/N</th>
       <th class="header-sls">SL/S</th>
       <th class="header-dh">d'H</th>
+      <th v-show="ohneAg" class="header-hn">H/N ohne</th>
+      <th v-show="ohneAg" class="header-sls">SL/S ohne</th>
+      <th v-show="ohneAg" class="header-dh">d'H ohne</th>
 
       <!-- Subheader HN -->
       <th class="hidden"></th>
@@ -232,26 +226,29 @@ export default {
         {{ entry.sitzeHauptorgan }}
       </td>
       <td v-show="ohneAg" :class="!entry.agMöglich ? 'keine-ag' : ''">
-        {{ formatAG(entry.ag).replace(/ /g, '&nbsp;') }}
+        {{ fmt.formatAG(entry.ag).replace(/ /g, '&nbsp;') }}
       </td>
       <td>
         <DataBar :current="entry.proporzgenaueZahlAusschuss" :max="data.helper.maxProporzgenaueZahlAusschuss" :decimals="2" />
       </td>
-      <td class="centered">
-        {{ formatYesNo(entry.sicherVertreten) }}
+      <td v-show="ohneAg" class="centered">
+        {{ fmt.formatYesNo(entry.sicherVertreten) }}
       </td>
       <td class="centered">
         {{ entry.quotenKriterium }}
       </td>
       <td class="centered">
-        {{ formatOkNok(true) }}
+        {{ fmt.formatOkNok(true) }}
       </td>
       <td class="centered" :class="entry.sls.qkVerletzt ? 'false' :''">
-        {{ formatOkNok(!entry.sls.qkVerletzt) }}
+        {{ fmt.formatOkNok(!entry.sls.qkVerletzt) }}
       </td>
       <td class="centered" :class="entry.dh.qkVerletzt ? 'false' : ''">
-        {{ formatOkNok(!entry.dh.qkVerletzt) }}
+        {{ fmt.formatOkNok(!entry.dh.qkVerletzt) }}
       </td>
+      <td v-show="ohneAg">xxx</td>
+      <td v-show="ohneAg">yyy</td>
+      <td v-show="ohneAg">zzz</td>
 
       <!-- Daten HN -->
       <td class="hidden"></td>
@@ -265,7 +262,7 @@ export default {
         <DataBar :current="entry.hn.sitzeGanz" :max="data.helper.hn.maxSitzeGanz" colour="green" />
       </td>
       <td class="right" v-show="this.style.hn.details">
-        {{ formatDecimal(entry.hn.sitzeRest, 4) }}
+        {{ fmt.formatDecimal(entry.hn.sitzeRest, 4) }}
       </td>
       <td class="centered" v-show="this.style.hn.details">
         {{ entry.hn.rangRest }}.
@@ -274,16 +271,16 @@ export default {
         {{ entry.hn.restsitz }}
       </td>
       <td class="centered" v-show="this.style.hn.details" :class="entry.hn.patt === true && entry.hn.restsitz > 0 ? 'patt' : ''">
-        {{ formatYesNo(entry.hn.patt) }}
+        {{ fmt.formatYesNo(entry.hn.patt) }}
       </td>
       <td class="right" v-show="this.style.hn.details">
-        {{ formatPercent(entry.hn.losChance) }}
+        {{ fmt.formatPercent(entry.hn.losChance) }}
       </td>
       <td class="right" v-show="this.style.hn.details">
         {{ entry.hn.stimmenGelost }}
       </td>
       <td class="centered" v-show="this.style.hn.details">
-        {{ formatYesNo(entry.hn.pattgewinn) }}
+        {{ fmt.formatYesNo(entry.hn.pattgewinn) }}
       </td>
 
       <!-- Daten SLS + Daten dH -->
@@ -298,7 +295,7 @@ export default {
         <td class="right" v-for="[q, value] in dataView(entry[dataKey].quotienten, this.style[dataKey].details, this.style[dataKey].quotientenDetails)" :key="q"
           :class="styleSitzeQuotienten(entry[dataKey].sitze.get(q))"
         >
-          {{ formatDecimal(value, 2) }}
+          {{ fmt.formatDecimal(value, 2) }}
         </td>
         <td class="right" v-for="[q, value] in dataView(entry[dataKey].raenge, this.style[dataKey].details, this.style[dataKey].rangDetails)" :key="q"
           :class="styleSitzeQuotienten(entry[dataKey].sitze.get(q))"
@@ -311,19 +308,19 @@ export default {
           {{ value }}
         </td>
         <td class="centered" v-show="this.style[dataKey].details" :class="entry[dataKey].patt === true ? 'patt' : ''">
-          {{ formatYesNo(entry[dataKey].patt) }}
+          {{ fmt.formatYesNo(entry[dataKey].patt) }}
         </td>
         <td class="right" v-show="this.style[dataKey].details && this.style[dataKey].pattDetails">
-          {{ formatPercent(entry[dataKey].losChance) }}
+          {{ fmt.formatPercent(entry[dataKey].losChance) }}
         </td>
         <td class="right" v-show="this.style[dataKey].details && this.style[dataKey].pattDetails">
           {{ entry[dataKey].stimmenGelost }}
         </td>
         <td class="centered" v-show="this.style[dataKey].details && this.style[dataKey].pattDetails">
-          {{ formatYesNo(entry[dataKey].pattgewinn) }}
+          {{ fmt.formatYesNo(entry[dataKey].pattgewinn) }}
         </td>
         <td class="centered" v-show="this.style[dataKey].details">
-          {{ formatYesNo(entry[dataKey].qkVerletzt) }}
+          {{ fmt.formatYesNo(entry[dataKey].qkVerletzt) }}
         </td>
       </template>
 
@@ -349,9 +346,10 @@ export default {
       </td>
       <td v-show="ohneAg"></td>
       <td>
-        {{ formatDecimal(data.ergebnisse.summeProporzgenaueZahlAusschuss) }}
+        {{ fmt.formatDecimal(data.ergebnisse.summeProporzgenaueZahlAusschuss) }}
       </td>
-      <td colspan="5"></td>
+      <td :colspan="ohneAg ? 5 : 4"></td>
+      <td v-show="ohneAg" colspan="3"></td>
 
       <!-- Footer HN -->
       <td class="hidden"></td>

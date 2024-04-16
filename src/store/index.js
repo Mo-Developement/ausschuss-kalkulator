@@ -1,23 +1,23 @@
 import { computed, reactive, ref } from "vue"
-import { pattAufloesungEnum, sitzStatus } from "./enums"
+
+import { pattAufloesungEnum, sitzStatus } from "./enums.js"
+import { formatAG } from "@/utils/formatter.js"
 
 function countOccurences(arr) {
     const countMap = new Map();
-    arr.forEach((num) => {
-        countMap.set(num, (countMap.get(num) || 0) + 1);
-    });
+    arr.forEach((num) => countMap.set(num, (countMap.get(num) || 0) + 1))
     return countMap
 }
 
 function rankDuplicate(countMap) {
-    const sorted = [...countMap.keys()].sort((a, b) => b - a);
+    const sorted = [...countMap.keys()].sort((a, b) => b - a)
     
     let rank = 1;
-    const rankMap = new Map();
+    const rankMap = new Map()
     sorted.forEach((num) => {
-        rankMap.set(num, rank);
-        rank += countMap.get(num);
-    });
+        rankMap.set(num, rank)
+        rank += countMap.get(num)
+    })
 
     return rankMap
 }
@@ -162,7 +162,7 @@ function newStateInstance() {
             .map(([id, parteien]) => {
                 const agNamen = parteien.map(p => p.name.substring(0, 3)).join(" ")
                 return neuePartei(
-                    `AG ${id} [${agNamen}]`,
+                    `${formatAG(id)} [${agNamen}]`,
                     parteien.reduce((sum, p) => sum + p.sitzeHauptorgan, 0),
                     null,
                     0,
