@@ -12,7 +12,7 @@ function countOccurences(arr) {
 function rankDuplicate(countMap) {
     const sorted = [...countMap.keys()].sort((a, b) => b - a)
     
-    let rank = 1;
+    let rank = 1
     const rankMap = new Map()
     sorted.forEach((num) => {
         rankMap.set(num, rank)
@@ -25,12 +25,21 @@ function rankDuplicate(countMap) {
 function newStateInstance() {
     let count = 0
 
-    function neuePartei(name, sitzeHauptorganN, ag=null, stimmen=undefined, agModus="ohneAG") {
+    /**
+     * Generiert ein neues Objekt mit den Daten einer Partei
+     * @param {string} name - Name der Partei/AG
+     * @param {number} sitzeHauptorgan - Anzahl der Sitze im Hauptorgan
+     * @param {number|null} [ag=null] - ID der angehörigen Ausschussgemeinschaft
+     * @param {number|null} [stimmen=null] - Anzahl der Wählerstimmen
+     * @param {string} [agModus="ohneAG"] - Anzeige, ob Objekt für die Berechnung mit oder ohne AGs erstellt wird
+     * @param {RefImpl} [original=null] - falls agModus = `mitAG` und selbst keine AG: Referenz auf Objekt ohne AG 
+     */
+    function neuePartei(name, sitzeHauptorgan, ag=null, stimmen=null, agModus="ohneAG", original=null) {
         const neu = {
             id: count,
 
             name: ref(name),
-            sitzeHauptorgan: ref(sitzeHauptorganN),
+            sitzeHauptorgan: ref(sitzeHauptorgan),
             ag: ref(ag),
             stimmen: ref(stimmen),
         }
@@ -59,6 +68,11 @@ function newStateInstance() {
                 ? neu.hn.losChance.value
                 : +neu.hn.pattgewinn.value))
 
+        if (agModus === "mitAG") {
+            neu.hn.sitzeOhneAG = computed(() => original === null ? null: original.hn.pattaufloesung + original.hn.sitze)
+            neu.hn.verlustLetzterSitz = computed(() => (neu.hn.sitzeOhneAG.value >= 1) && (neu.hn.sitze.value + neu.hn.pattaufloesung.value) < 1)
+        }
+
         function neuesQuotientenVerfahren(name) {
             neu[name] = {}
 
@@ -85,6 +99,11 @@ function newStateInstance() {
                     : +neu[name].pattgewinn.value))
             neu[name].qkVerletzt = computed(() => neu[name].sitzeGesamt.value < Math.floor(neu.proporzgenaueZahlAusschuss.value)
                 || neu[name].sitzeGesamt.value + +neu[name].patt.value > Math.ceil(neu.proporzgenaueZahlAusschuss.value))
+
+            if (agModus === "mitAG") {
+                neu[name].sitzeOhneAG = computed(() => original === null ? null: original[name].pattaufloesung + original[name].sitzeGesamt)
+                neu[name].verlustLetzterSitz = computed(() => (neu[name].sitzeOhneAG.value >= 1) && (neu[name].sitzeGesamt.value + neu[name].pattaufloesung.value) < 1)
+            }
         }
 
         neuesQuotientenVerfahren("sls")
@@ -126,6 +145,7 @@ function newStateInstance() {
         data[agModus].ergebnisse.hn.summeSitze = computed(() => data[agModus].parteien.reduce((sum, p) => sum + p.hn.sitze, 0))
         data[agModus].ergebnisse.hn.summeLosChance = computed(() => data[agModus].parteien.reduce((sum, p) => sum + p.hn.losChance, 0))
         data[agModus].ergebnisse.hn.summePattaufloesung = computed(() => Math.round(data[agModus].parteien.reduce((sum, p) => sum + p.hn.pattaufloesung, 0)))
+        data[agModus].ergebnisse.hn.summeSitzeMitPatt = computed(() => data[agModus].ergebnisse.hn.summeSitze + data[agModus].ergebnisse.hn.summePattaufloesung)
 
         data[agModus].helper.hn = {}
         data[agModus].helper.hn.maxSitzeGanz = computed(() => data[agModus].parteien.reduce((max, p) => Math.max(max, p.hn.sitzeGanz), 0))
@@ -143,7 +163,8 @@ function newStateInstance() {
         data[agModus].ergebnisse[name].summeSitzeGesamt = computed(() => Math.round(data[agModus].parteien.reduce((sum, p) => sum + p[name].sitzeGesamt, 0)))
         data[agModus].ergebnisse[name].summePatt = computed(() => data[agModus].parteien.filter(p => p[name].patt === true).length)
         data[agModus].ergebnisse[name].summeLosChance = computed(() => data[agModus].parteien.reduce((sum, p) => sum + p[name].losChance, 0))
-        data[agModus].ergebnisse[name].summePattaufloesung = computed(() => data[agModus].parteien.reduce((sum, p) => sum + p[name].pattaufloesung, 0))
+        data[agModus].ergebnisse[name].summePattaufloesung = computed(() => Math.round(data[agModus].parteien.reduce((sum, p) => sum + p[name].pattaufloesung, 0)))
+        data[agModus].ergebnisse[name].summeSitzeMitPatt = computed(() => data[agModus].ergebnisse[name].summePattaufloesung + data[agModus].ergebnisse[name].summeSitzeGesamt)
         data[agModus].ergebnisse[name].summeQkVerletzt = computed(() => data[agModus].parteien.filter(p => p[name].qkVerletzt === true).length)
 
         data[agModus].helper[name] = {}
@@ -175,7 +196,7 @@ function newStateInstance() {
     const ohneAgViewParteien = computed(() => inputParteien.value)
     const agViewParteien = computed(() => inputParteien.value
         .filter(p => p.ag === null)
-        .map(p => reactive(neuePartei(p.name, p.sitzeHauptorgan, p.ag, p.stimmen, "mitAG")))
+        .map(p => reactive(neuePartei(p.name, p.sitzeHauptorgan, p.ag, p.stimmen, "mitAG", p)))
         .concat(reactive(ags.value)))
 
     for (const agModus of ["ohneAG", "mitAG"]) {

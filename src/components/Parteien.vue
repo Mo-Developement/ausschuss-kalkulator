@@ -109,7 +109,7 @@ export default {
       <th colspan="4">
         Zulässigkeit Verfahren
       </th>
-      <th v-show="ohneAg" colspan="3">
+      <th v-show="!ohneAg" colspan="3">
         Verlust letzter Sitz?
       </th>
 
@@ -124,26 +124,26 @@ export default {
       <!-- Header SLS + Header dH -->
       <template v-for="{ dataKey, name } of quotientenVerfahrenTabelle" :key="dataKey">
         <th class="hidden"></th>
-        <th :class="headerClass(dataKey)" colspan="2">
+        <th class="relative" :class="headerClass(dataKey)" colspan="2">
           <div>
-            <button class="hand" @click="style[dataKey].details = !style[dataKey].details">{{ this.style[dataKey].details ? "-" : "+" }}</button>
+            <button class="expand-button" @click="style[dataKey].details = !style[dataKey].details">{{ this.style[dataKey].details ? "-" : "+" }}</button>
             <span v-html="name"></span>
           </div>
         </th>
-        <th :class="headerClass(dataKey)" v-show="this.style[dataKey].details" :colspan="this.style[dataKey].quotientenDetails === true ? 19 : 1">
-          <button class="hand" @click="style[dataKey].quotientenDetails = !style[dataKey].quotientenDetails">{{ this.style[dataKey].quotientenDetails ? "-" : "+" }}</button>
+        <th class="relative" :class="headerClass(dataKey)" v-show="this.style[dataKey].details" :colspan="this.style[dataKey].quotientenDetails === true ? 19 : 1">
+          <button class="expand-button" @click="style[dataKey].quotientenDetails = !style[dataKey].quotientenDetails">{{ this.style[dataKey].quotientenDetails ? "-" : "+" }}</button>
           Quotienten
         </th>
-        <th :class="headerClass(dataKey)" v-show="this.style[dataKey].details" :colspan="this.style[dataKey].rangDetails === true ? 19 : 1">
-          <button class="hand" @click="style[dataKey].rangDetails = !style[dataKey].rangDetails">{{ this.style[dataKey].rangDetails ? "-" : "+" }}</button>
+        <th class="relative" :class="headerClass(dataKey)" v-show="this.style[dataKey].details" :colspan="this.style[dataKey].rangDetails === true ? 19 : 1">
+          <button class="expand-button" @click="style[dataKey].rangDetails = !style[dataKey].rangDetails">{{ this.style[dataKey].rangDetails ? "-" : "+" }}</button>
           Rangzahlen
         </th>
-        <th :class="headerClass(dataKey)" v-show="this.style[dataKey].details" :colspan="this.style[dataKey].sitzeDetails === true ? 19 : 1">
-          <button class="hand" @click="style[dataKey].sitzeDetails = !style[dataKey].sitzeDetails">{{ this.style[dataKey].sitzeDetails ? "-" : "+" }}</button>
+        <th class="relative" :class="headerClass(dataKey)" v-show="this.style[dataKey].details" :colspan="this.style[dataKey].sitzeDetails === true ? 19 : 1">
+          <button class="expand-button" @click="style[dataKey].sitzeDetails = !style[dataKey].sitzeDetails">{{ this.style[dataKey].sitzeDetails ? "-" : "+" }}</button>
           Sitze
         </th>
-        <th :class="headerClass(dataKey)" v-show="this.style[dataKey].details" :colspan="this.style[dataKey].pattDetails === true ? 4 : 1">
-          <button class="hand" @click="style[dataKey].pattDetails = !style[dataKey].pattDetails">{{ this.style[dataKey].pattDetails ? "-" : "+" }}</button>
+        <th class="relative" :class="headerClass(dataKey)" v-show="this.style[dataKey].details" :colspan="this.style[dataKey].pattDetails === true ? 4 : 1">
+          <button class="expand-button" @click="style[dataKey].pattDetails = !style[dataKey].pattDetails">{{ this.style[dataKey].pattDetails ? "-" : "+" }}</button>
           Patt
         </th>
         <th :class="headerClass(dataKey)" v-show="this.style[dataKey].details" >
@@ -168,9 +168,9 @@ export default {
       <th class="header-hn">H/N</th>
       <th class="header-sls">SL/S</th>
       <th class="header-dh">d'H</th>
-      <th v-show="ohneAg" class="header-hn">H/N ohne</th>
-      <th v-show="ohneAg" class="header-sls">SL/S ohne</th>
-      <th v-show="ohneAg" class="header-dh">d'H ohne</th>
+      <th v-show="!ohneAg" class="header-hn">H/N ohne</th>
+      <th v-show="!ohneAg" class="header-sls">SL/S ohne</th>
+      <th v-show="!ohneAg" class="header-dh">d'H ohne</th>
 
       <!-- Subheader HN -->
       <th class="hidden"></th>
@@ -216,7 +216,7 @@ export default {
     <tr v-for="entry in data.parteien" :key="entry.id">
       <!-- Daten Info -->
       <td>
-        <div style="display: flex; align-items: center; gap: 6px;">
+        <div class="partei-zelle">
           <Button :disabled="!ohneAg" icon="pi pi-pencil" severity="secondary" rounded outlined aria-label="Bearbeiten" @click="showEditDialog(entry)" />
           <Button :disabled="!ohneAg" icon="pi pi-trash" severity="secondary" rounded outlined aria-label="Löschen" @click="deleteItem(entry.id)" />
           {{ entry.name }}
@@ -225,7 +225,7 @@ export default {
       <td class="right">
         {{ entry.sitzeHauptorgan }}
       </td>
-      <td v-show="ohneAg" :class="!entry.agMöglich ? 'keine-ag' : ''">
+      <td v-show="ohneAg" :class="!entry.agMöglich && 'keine-ag'">
         {{ fmt.formatAG(entry.ag).replace(/ /g, '&nbsp;') }}
       </td>
       <td>
@@ -240,22 +240,28 @@ export default {
       <td class="centered">
         {{ fmt.formatOkNok(true) }}
       </td>
-      <td class="centered" :class="entry.sls.qkVerletzt ? 'false' :''">
+      <td class="centered" :class="entry.sls.qkVerletzt && 'false'">
         {{ fmt.formatOkNok(!entry.sls.qkVerletzt) }}
       </td>
-      <td class="centered" :class="entry.dh.qkVerletzt ? 'false' : ''">
+      <td class="centered" :class="entry.dh.qkVerletzt && 'false'">
         {{ fmt.formatOkNok(!entry.dh.qkVerletzt) }}
       </td>
-      <td v-show="ohneAg">xxx</td>
-      <td v-show="ohneAg">yyy</td>
-      <td v-show="ohneAg">zzz</td>
+      <td v-show="!ohneAg" class="right" :class="entry.hn.verlustLetzterSitz && 'false'">
+        {{ entry.hn.sitzeOhneAG }}
+      </td>
+      <td v-show="!ohneAg" class="right" :class="entry.sls.verlustLetzterSitz && 'false'">
+        {{ entry.sls.sitzeOhneAG }}
+      </td>
+      <td v-show="!ohneAg" class="right" :class="entry.dh.verlustLetzterSitz && 'false'">
+        {{ entry.dh.sitzeOhneAG }}
+      </td>
 
       <!-- Daten HN -->
       <td class="hidden"></td>
-      <td>
+      <td :class="entry.hn.verlustLetzterSitz && 'false'">
         <DataBar :current="entry.hn.sitze" :max="data.helper.hn.maxSitze" colour="green" />
       </td>
-      <td>
+      <td :class="entry.hn.verlustLetzterSitz && 'false'">
         <DataBar v-if="entry.hn.patt === true" :current="entry.hn.pattaufloesung" :max="data.helper.hn.maxPattaufloesung" :decimals="2" colour="yellow" />
       </td>
       <td v-show="this.style.hn.details">
@@ -267,10 +273,10 @@ export default {
       <td class="centered" v-show="this.style.hn.details">
         {{ entry.hn.rangRest }}.
       </td>
-      <td class="right" v-show="this.style.hn.details" :class="entry.hn.restsitz > 0 ? (entry.hn.patt === false ? 'correct' : 'patt') : ''">
+      <td class="right" v-show="this.style.hn.details" :class="entry.hn.restsitz > 0 && (entry.hn.patt === false ? 'correct' : 'patt')">
         {{ entry.hn.restsitz }}
       </td>
-      <td class="centered" v-show="this.style.hn.details" :class="entry.hn.patt === true && entry.hn.restsitz > 0 ? 'patt' : ''">
+      <td class="centered" v-show="this.style.hn.details" :class="(entry.hn.patt === true && entry.hn.restsitz > 0) && 'patt'">
         {{ fmt.formatYesNo(entry.hn.patt) }}
       </td>
       <td class="right" v-show="this.style.hn.details">
@@ -286,10 +292,10 @@ export default {
       <!-- Daten SLS + Daten dH -->
       <template v-for="{ dataKey } of quotientenVerfahrenTabelle" :key="dataKey">
         <td class="hidden"></td>
-        <td :class="entry[dataKey].qkVerletzt === true ? 'false' : ''">
+        <td :class="(entry[dataKey].qkVerletzt || (!ohneAg && entry[dataKey].verlustLetzterSitz)) && 'false'">
           <DataBar :current="entry[dataKey].sitzeGesamt" :max="data.helper[dataKey].maxSitzeGesamt" colour="green" />
         </td>
-        <td :class="entry[dataKey].qkVerletzt === true ? 'false' : ''">
+        <td :class="(entry[dataKey].qkVerletzt || (!ohneAg && entry[dataKey].verlustLetzterSitz)) && 'false'">
           <DataBar v-if="entry[dataKey].patt === true" :current="entry[dataKey].pattaufloesung" :max="data.helper[dataKey].maxPattaufloesung" colour="yellow" :decimals="2" />
         </td>
         <td class="right" v-for="[q, value] in dataView(entry[dataKey].quotienten, this.style[dataKey].details, this.style[dataKey].quotientenDetails)" :key="q"
@@ -307,7 +313,7 @@ export default {
         >
           {{ value }}
         </td>
-        <td class="centered" v-show="this.style[dataKey].details" :class="entry[dataKey].patt === true ? 'patt' : ''">
+        <td class="centered" v-show="this.style[dataKey].details" :class="entry[dataKey].patt === true && 'patt'">
           {{ fmt.formatYesNo(entry[dataKey].patt) }}
         </td>
         <td class="right" v-show="this.style[dataKey].details && this.style[dataKey].pattDetails">
@@ -349,12 +355,14 @@ export default {
         {{ fmt.formatDecimal(data.ergebnisse.summeProporzgenaueZahlAusschuss) }}
       </td>
       <td :colspan="ohneAg ? 5 : 4"></td>
-      <td v-show="ohneAg" colspan="3"></td>
+      <td v-show="!ohneAg" colspan="3"></td>
 
       <!-- Footer HN -->
       <td class="hidden"></td>
       <td>{{ data.ergebnisse.hn.summeSitze }}</td>
-      <td>{{ data.ergebnisse.hn.summePattaufloesung }}</td>
+      <td :class="data.ergebnisse.hn.summeSitzeMitPatt != startConfig.sitzeAusschuss && 'false'">
+        {{ data.ergebnisse.hn.summePattaufloesung }}
+      </td>
       <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeSitzeGanz }}</td>
       <td v-show="this.style.hn.details">{{ data.ergebnisse.hn.summeSitzeRest }}</td>
       <td v-show="this.style.hn.details"></td>
@@ -368,7 +376,7 @@ export default {
       <template v-for="{ dataKey } of quotientenVerfahrenTabelle" :key="dataKey">
         <td class="hidden"></td>
         <td>{{ data.ergebnisse[dataKey].summeSitzeGesamt }}</td>
-        <td :class="Math.round(data.ergebnisse[dataKey].summeSitzeGesamt + data.ergebnisse[dataKey].summePattaufloesung) != startConfig.sitzeAusschuss ? 'false' : ''">
+        <td :class="data.ergebnisse[dataKey].summeSitzeMitPatt != startConfig.sitzeAusschuss && 'false'">
           {{ data.ergebnisse[dataKey].summePattaufloesung }}
         </td>
         <td v-show="this.style[dataKey].details" :colspan="this.style[dataKey].quotientenDetails === true ? 19 : 1"></td>
@@ -416,6 +424,16 @@ table tbody td {
 
 table tbody tr:nth-child(odd) {
   background-color: var(--table-row-odd);
+}
+
+.partei-zelle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.partei-zelle Button {
+  flex-shrink: 0;
 }
 
 .relative {
