@@ -28,7 +28,7 @@ export default {
 </script>
 
 <template>
-<Menubar :model="routes">
+<Menubar :model="routes" :breakpoint="'800px'">
   <template #item="{ item, props }">
     <RouterLink v-slot="{ href, navigate }" :to="item.path" custom>
       <a :href="href" v-bind="props.action" @click="navigate">
