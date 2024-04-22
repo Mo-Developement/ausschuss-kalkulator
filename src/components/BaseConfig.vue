@@ -29,10 +29,6 @@ export default {
 
   <div class="stacked-input">
     <span id="pattAufloesung">Pattauflösung</span>
-    <!-- <Dropdown aria-labelledby="pattAufloesung"
-      v-model="startConfig.pattAufloesung" :options="Object.values(pattAufloesungEnum)"
-      optionLabel="display" optionValue="value" placeholder="--- Pattauflösungsmethode auswählen ---"
-    /> -->
     <SelectButton aria-labelledby="pattAufloesung"
       v-model="startConfig.pattAufloesung" :options="Object.values(pattAufloesungEnum)"
       optionLabel="display" optionValue="value" :allow-empty="false"
