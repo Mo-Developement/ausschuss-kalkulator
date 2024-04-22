@@ -162,7 +162,9 @@ export default {
       <th>Partei/<wbr>Wählergruppe</th>
       <th>Sitze&nbsp;im Hauptorgan</th>
       <th v-show="ohneAg">AG?</th>
-      <th>Proporz&shy;genaue Zahl Ausschuss</th>
+      <th>
+        <span class="header-databar">Proporzgenaue Zahl&nbsp;Ausschuss</span>
+      </th>
       <th v-show="ohneAg">Sicher vertreten?</th>
       <th>Quoten&shy;kriterium</th>
       <th class="header-hn">H/N</th>
@@ -174,9 +176,15 @@ export default {
 
       <!-- Subheader HN -->
       <th class="hidden"></th>
-      <th class="header-hn">Sitze</th>
-      <th class="header-hn">Patt Auf&shy;lösung</th>
-      <th v-show="this.style.hn.details" class="header-hn">S ganz</th>
+      <th class="header-hn">
+        <span class="header-databar">Sitze</span>
+      </th>
+      <th class="header-hn">
+        <span class="header-databar">Pattauf&shy;lösung</span>
+      </th>
+      <th v-show="this.style.hn.details" class="header-hn">
+        <span class="header-databar">S ganz</span>
+      </th>
       <th v-show="this.style.hn.details" class="header-hn">S Rest</th>
       <th v-show="this.style.hn.details" class="header-hn">Rng Rest</th>
       <th v-show="this.style.hn.details" class="header-hn">Rest&shy;sitz</th>
@@ -188,8 +196,12 @@ export default {
       <!-- Subheader SLS + Subheader dH -->
       <template v-for="{ dataKey } of quotientenVerfahrenTabelle" :key="dataKey">
         <th class="hidden"></th>
-        <th :class="headerClass(dataKey)">Sitze</th>
-        <th :class="headerClass(dataKey)">Patt Auf&shy;lösung</th>
+        <th :class="headerClass(dataKey)">
+          <span class="header-databar">Sitze</span>
+        </th>
+        <th :class="headerClass(dataKey)">
+          <span class="header-databar">Pattauf&shy;lösung</span>
+        </th>
         <th :class="headerClass(dataKey)" class="right" v-for="(q, key) in subHeaderView(data.helper[dataKey].quotienten, this.style[dataKey].details, this.style[dataKey].quotientenDetails)" :key="key">
           :{{ q }}
         </th>
@@ -219,7 +231,7 @@ export default {
         <div class="partei-zelle">
           <Button :disabled="!ohneAg" icon="pi pi-pencil" severity="secondary" rounded outlined aria-label="Bearbeiten" @click="showEditDialog(entry)" />
           <Button :disabled="!ohneAg" icon="pi pi-trash" severity="secondary" rounded outlined aria-label="Löschen" @click="deleteItem(entry.id)" />
-          {{ entry.name }}
+          <span>{{ entry.name }}</span>
         </div>
       </td>
       <td class="right">
@@ -426,14 +438,24 @@ table tbody tr:nth-child(odd) {
   background-color: var(--table-row-odd);
 }
 
+.header-databar {
+  display: block;
+  min-width: 5rem;
+}
+
 .partei-zelle {
   display: flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .partei-zelle Button {
   flex-shrink: 0;
+}
+
+.partei-zelle > span {
+  min-width: 12em;
 }
 
 .relative {

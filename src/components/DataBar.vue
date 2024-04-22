@@ -1,4 +1,6 @@
 <script>
+import { formatDecimal } from "@/utils/formatter.js"
+
 export default {
   name: 'DataBar',
   props: {
@@ -12,7 +14,6 @@ export default {
   },
   computed: {
     width() {
-      // return (this.current / this.max * 100) + '%'
       return this.max !== 0
         ? (this.current / this.max * 100) + '%'
         : '0%'
@@ -25,7 +26,8 @@ export default {
       }
       return computedColour
     }
-  }
+  },
+  methods: { formatDecimal }
 }
 </script>
 
@@ -35,7 +37,7 @@ export default {
       <div class="databar"></div>
     </div>
     <span>
-      {{ current.toFixed(this.decimals).replace(/\./g, ',') }}
+      {{ formatDecimal(current, this.decimals) }}
     </span>
   </div>
 </template>
@@ -45,15 +47,17 @@ export default {
   display: flex;
   justify-content: space-between;
   column-gap: 10px;
+  width: 100%;
 }
 
 .wrapper {
-  width: 5rem;
+  width: 100%;
+  min-width: 3rem;
 }
 
 .databar {
   background-color: v-bind('computedColour');
-  /* border-radius: var(--border-radius); */
+  border-radius: var(--border-radius);
   height: 100%;
   width: v-bind('width');
 }
