@@ -1,17 +1,20 @@
 <script>
-import InputNumber from 'primevue/inputnumber'
-import SelectButton from 'primevue/selectbutton'
+import InputNumber from "primevue/inputnumber"
+import SelectButton from "primevue/selectbutton"
 
-import { pattAufloesungEnum } from '../store/enums.js'
-import { useState } from "../store/index.js"
+import { pattAufloesungEnum } from "@/store/enums.js"
+import { useState } from "@/store/index.js"
 
 export default {
   name: "BaseConfig",
-  components: { InputNumber, SelectButton },
+  props: {
+    ohneAg: Boolean
+  },
   setup() {
     const { startConfig } = useState()
     return { pattAufloesungEnum, startConfig }
   },
+  components: { InputNumber, SelectButton }
 }
 </script>
 
@@ -19,18 +22,22 @@ export default {
 <form>
   <div class="stacked-input">
     <label for="groesseHauptorgan">Größe Hauptorgan</label>
-    <InputNumber v-model="startConfig.sitzeHauptorgan" inputId="groesseHauptorgan" :min="0" buttonLayout="stacked" showButtons />
+    <InputNumber :disabled="!ohneAg" v-model="startConfig.sitzeHauptorgan" inputId="groesseHauptorgan" :min="0" buttonLayout="stacked" showButtons />
   </div>
 
   <div class="stacked-input">
     <label for="groesseAusschuss">Ausschussgröße</label>
-    <InputNumber v-model="startConfig.sitzeAusschuss" inputId="groesseAusschuss" :min="0" buttonLayout="stacked" showButtons />
+    <InputNumber :disabled="!ohneAg" v-model="startConfig.sitzeAusschuss" inputId="groesseAusschuss" :min="0" buttonLayout="stacked" showButtons />
   </div>
 
   <div class="stacked-input">
     <span id="pattAufloesung">Pattauflösung</span>
-    <SelectButton aria-labelledby="pattAufloesung"
-      v-model="startConfig.pattAufloesung" :options="Object.values(pattAufloesungEnum)"
+    <SelectButton v-if="ohneAg" aria-labelledby="pattAufloesung"
+      v-model="startConfig.pattAufloesung['ohneAG']" :options="Object.values(pattAufloesungEnum)"
+      optionLabel="display" optionValue="value" :allow-empty="false"
+    />
+    <SelectButton v-if="!ohneAg" aria-labelledby="pattAufloesung"
+      v-model="startConfig.pattAufloesung['mitAG']" :options="Object.values(pattAufloesungEnum)"
       optionLabel="display" optionValue="value" :allow-empty="false"
     />
   </div>
