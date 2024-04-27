@@ -60,11 +60,11 @@ function newStateInstance() {
             ((data[agModus].helper.hn.vorkommenRaenge.get(neu.hn.sitzeRest.value) + neu.hn.rangRest.value - 1) > data[agModus].ergebnisse.hn.summeSitzeRest))
         neu.hn.sitze = computed(() => neu.hn.sitzeGanz.value + (neu.hn.patt.value === false ? neu.hn.restsitz.value : 0))
         neu.hn.losChance = computed(() => neu.hn.patt.value === false ? 0 : (startConfig.sitzeAusschuss - data[agModus].ergebnisse.hn.summeSitze) / data[agModus].ergebnisse.hn.summePatt)
-        neu.hn.stimmenGelost = computed(() => (neu.hn.patt.value === true && startConfig.pattAufloesung === pattAufloesungEnum.STIMMEN.value)
+        neu.hn.stimmenGelost = computed(() => (neu.hn.patt.value === true && startConfig.pattAufloesung[agModus] === pattAufloesungEnum.STIMMEN.value)
             ? neu.stimmen : 0)
         neu.hn.pattgewinn = computed(() => data[agModus].helper.hn.raengeStimmen.get(neu.stimmen.value) <= (startConfig.sitzeAusschuss - data[agModus].ergebnisse.hn.summeSitze))
         neu.hn.pattaufloesung = computed(() => neu.hn.patt.value === false ? 0
-            : (startConfig.pattAufloesung === pattAufloesungEnum.LOS.value
+            : (startConfig.pattAufloesung[agModus] === pattAufloesungEnum.LOS.value
                 ? neu.hn.losChance.value
                 : +neu.hn.pattgewinn.value))
 
@@ -91,10 +91,10 @@ function newStateInstance() {
             neu[name].losChance = computed(() => neu[name].patt.value === true
                 ? (startConfig.sitzeAusschuss - data[agModus].ergebnisse[name].summeSitzeGesamt) / data[agModus].ergebnisse[name].summePatt
                 : 0)
-            neu[name].stimmenGelost = computed(() => (neu[name].patt.value === true && (startConfig.pattAufloesung === pattAufloesungEnum.STIMMEN.value)) ? neu.stimmen.value : 0)
+            neu[name].stimmenGelost = computed(() => (neu[name].patt.value === true && (startConfig.pattAufloesung[agModus] === pattAufloesungEnum.STIMMEN.value)) ? neu.stimmen.value : 0)
             neu[name].pattgewinn = computed(() => data[agModus].helper[name].raengeStimmenGelost.get(neu[name].stimmenGelost.value) <= (startConfig.sitzeAusschuss - data[agModus].ergebnisse[name].summeSitzeGesamt))
             neu[name].pattaufloesung = computed(() => neu[name].patt.value === false ? 0
-                : (startConfig.pattAufloesung === pattAufloesungEnum.LOS.value
+                : (startConfig.pattAufloesung[agModus] === pattAufloesungEnum.LOS.value
                     ? neu[name].losChance.value
                     : +neu[name].pattgewinn.value))
             neu[name].qkVerletzt = computed(() => neu[name].sitzeGesamt.value < Math.floor(neu.proporzgenaueZahlAusschuss.value)
@@ -117,7 +117,10 @@ function newStateInstance() {
     const startConfig = reactive({
         sitzeHauptorgan: 0,
         sitzeAusschuss: 0,
-        pattAufloesung: '',
+        pattAufloesung: {
+            ohneAG: '',
+            mitAG: '',
+        }
     })
 
     const data = reactive({})
@@ -225,7 +228,8 @@ function newStateInstance() {
     function clear() {
         startConfig.sitzeHauptorgan = 0
         startConfig.sitzeAusschuss = 0
-        startConfig.pattAufloesung = pattAufloesungEnum.LOS.value
+        startConfig.pattAufloesung["ohneAG"] = pattAufloesungEnum.LOS.value
+        startConfig.pattAufloesung["mitAG"] = pattAufloesungEnum.LOS.value
 
         inputParteien.value.splice(0)
     }
@@ -235,7 +239,8 @@ function newStateInstance() {
 
         startConfig.sitzeHauptorgan = 70
         startConfig.sitzeAusschuss = 14 // 8 für SLS
-        startConfig.pattAufloesung = pattAufloesungEnum.STIMMEN.value
+        startConfig.pattAufloesung["ohneAG"] = pattAufloesungEnum.STIMMEN.value
+        startConfig.pattAufloesung["mitAG"] = pattAufloesungEnum.LOS.value
 
         inputParteien.value.push(
             neuePartei("CSU", 20, null, 6543),

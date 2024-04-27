@@ -1,18 +1,30 @@
 <script>
-import Button from 'primevue/button'
-import Toolbar from 'primevue/toolbar'
+import Button from "primevue/button"
+import TabMenu from "primevue/tabmenu"
+import Toolbar from "primevue/toolbar"
 
 import BaseConfig from "../components/BaseConfig.vue"
 import Parteien from "../components/Parteien.vue"
 
-import { useState } from "../store/index.js"
+import { agTabs } from "@/store/enums.js"
+import { useState } from "@/store/index.js"
 
 export default {
   name: "AusschussKalkulator",
-  components: { BaseConfig, Button, Parteien, Toolbar },
+  components: { BaseConfig, Button, Parteien, TabMenu, Toolbar },
   setup() {
     const { clear, loadDefaults } = useState()
-    return { clear, loadDefaults }
+    return { clear, loadDefaults, agTabs }
+  },
+  data() {
+    return {
+      activeTab: 0
+    }
+  },
+  computed: {
+    ohneAg() {
+      return this.activeTab === 0
+    }
   },
   mounted() {
     this.loadDefaults()
@@ -21,10 +33,12 @@ export default {
 </script>
 
 <template>
-  <BaseConfig />
+  <BaseConfig :ohneAg="ohneAg" />
 
-  <div style="overflow-x: auto; padding-bottom: 10px; margin: 24px 0;">
-    <Parteien />
+  <TabMenu v-model:activeIndex="activeTab" :model="agTabs" style="width: max-content;" />
+
+  <div style="overflow-x: auto; padding-bottom: 10px; margin-top: 12px;">
+    <Parteien :ohneAg="ohneAg" />
   </div>
 
   <Toolbar>

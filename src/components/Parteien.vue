@@ -1,6 +1,5 @@
 <script>
 import Button from "primevue/button"
-import TabMenu from "primevue/tabmenu"
 
 import DataBar from "./DataBar.vue"
 import EditDialog from "./EditDialog.vue"
@@ -8,16 +7,19 @@ import EditDialog from "./EditDialog.vue"
 import * as fmt from "@/utils/formatter.js"
 
 import { useState } from "@/store/index.js"
-import { agTabs, sitzStatus, quotientenVerfahrenTabelle } from "@/store/enums.js"
+import { sitzStatus, quotientenVerfahrenTabelle } from "@/store/enums.js"
 
 export default {
   name: 'ParteiDaten',
+  props: {
+    ohneAg: Boolean
+  },
   setup() {
     const { deleteItem, clear, loadDefaults, neuePartei, updateItem, data, startConfig } = useState()
     return {
       fmt,
       deleteItem, clear, loadDefaults, neuePartei, updateItem, completeData: data, startConfig,
-      agTabs, quotientenVerfahrenTabelle
+      quotientenVerfahrenTabelle
     }
   },
   data() {
@@ -89,7 +91,7 @@ export default {
       this.editDialogVisible = true
     },
   },
-  components: { Button, DataBar, EditDialog, TabMenu }
+  components: { Button, DataBar, EditDialog }
 }
 </script>
 
@@ -351,7 +353,7 @@ export default {
     <!-- Button Partei hinzufügen -->
     <tr>
       <td colspan="2">
-        <Button type="button" severity="secondary" label="neue Partei" icon="pi pi-plus" @click="showNewDialog" outlined rounded />
+        <Button :disabled="!ohneAg" type="button" severity="secondary" label="neue Partei" icon="pi pi-plus" @click="showNewDialog" outlined rounded />
       </td>
     </tr>
   </tbody>
