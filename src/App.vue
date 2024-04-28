@@ -1,14 +1,17 @@
 <script>
-import InputSwitch from 'primevue/inputswitch'
+import Button from 'primevue/button'
 import Menubar from 'primevue/menubar'
 
 import { routes } from "@/router.js"
 
+import { useState } from '@/store/index.js'
+import { download } from "@/utils/downloader.js"
+
 export default {
   name: "app",
-  components: { InputSwitch, Menubar },
   setup() {
-    return { routes }
+    const { prepareForJson } = useState()
+    return { prepareForJson, routes }
   },
   data() {
     return {
@@ -23,7 +26,14 @@ export default {
         'theme-link', () => {}
       )
     }
-  }
+  },
+  methods: {
+    async downloadInput() {
+      const obj = this.prepareForJson()
+      download(obj)
+    }
+  },
+  components: { Button, Menubar }
 }
 </script>
 
@@ -39,10 +49,11 @@ export default {
   </template>
 
   <template #end>
-    <div id="theme-switcher">
-      <i class="pi pi-sun"></i>
-      <InputSwitch v-model="darkMode" v-tooltip.left="'Dark Mode'" aria-label="Dark Mode" />
-      <i class="pi pi-moon"></i>
+    <div class="end">
+      <Button icon="pi pi-save" @click="downloadInput" v-tooltip.left="'Eingaben herunterladen'" aria-label="Eingaben herunterladen" />
+      <Button icon="pi pi-moon" @click="darkMode = !darkMode" severity="secondary" :outlined="!darkMode"
+        v-tooltip.left="'zu ' + (darkMode ? 'hellem' : 'dunklem') + ' Design wechseln'" aria-label="helles/dunkles Design wechseln"
+      />
     </div>
   </template>
 </Menubar>
@@ -57,11 +68,9 @@ export default {
   gap: 0.5rem;
 }
 
-#theme-switcher {
+.end {
   display: flex;
-  align-items: center;
-  justify-content: end;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 main {

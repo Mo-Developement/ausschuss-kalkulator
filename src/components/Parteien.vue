@@ -43,15 +43,11 @@ export default {
           pattDetails: false
         }
       },
-      activeTab: 0,
       editDialogVisible: false,
       editDialogNew: true,
     }
   },
   computed: {
-    ohneAg() {
-      return this.activeTab === 0
-    },
     data() {
       return this.ohneAg ? this.completeData["ohneAG"] : this.completeData["mitAG"]
     },
@@ -96,8 +92,6 @@ export default {
 </script>
 
 <template>
-<TabMenu v-model:activeIndex="activeTab" :model="agTabs" style="width: max-content;" />
-
 <table>
   <thead class="header-info">
     <tr class="bold centered">

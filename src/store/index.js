@@ -225,11 +225,15 @@ function newStateInstance() {
         }
     }
 
+    function setStartConfig(sitzeHauptorgan, sitzeAusschuss, pattAufloesungOhneAG, pattAufloesungMitAG) {
+        startConfig.sitzeHauptorgan = sitzeHauptorgan
+        startConfig.sitzeAusschuss = sitzeAusschuss
+        startConfig.pattAufloesung["ohneAG"] = pattAufloesungOhneAG
+        startConfig.pattAufloesung["mitAG"] = pattAufloesungMitAG
+    }
+
     function clear() {
-        startConfig.sitzeHauptorgan = 0
-        startConfig.sitzeAusschuss = 0
-        startConfig.pattAufloesung["ohneAG"] = pattAufloesungEnum.LOS.value
-        startConfig.pattAufloesung["mitAG"] = pattAufloesungEnum.LOS.value
+        setStartConfig(0, 0, pattAufloesungEnum.LOS.value, pattAufloesungEnum.LOS.value)
 
         inputParteien.value.splice(0)
     }
@@ -237,10 +241,7 @@ function newStateInstance() {
     function loadDefaults() {
         clear()
 
-        startConfig.sitzeHauptorgan = 70
-        startConfig.sitzeAusschuss = 14 // 8 für SLS
-        startConfig.pattAufloesung["ohneAG"] = pattAufloesungEnum.STIMMEN.value
-        startConfig.pattAufloesung["mitAG"] = pattAufloesungEnum.LOS.value
+        setStartConfig(70, 14, pattAufloesungEnum.STIMMEN.value, pattAufloesungEnum.LOS.value)
 
         inputParteien.value.push(
             neuePartei("CSU", 20, null, 6543),
@@ -257,12 +258,33 @@ function newStateInstance() {
         )
     }
 
+    function loadFromJson(json) {
+        const obj = JSON.parse(json)
+        const { original: { config: conf } } = obj
+        const { original: { parteien } } = obj
+
+        clear()
+        setStartConfig(conf.sitzeHauptorgan, conf.sitzeAusschuss, conf.pattAufloesung["ohneAG"], conf.pattAufloesung["mitAG"])
+        parteien.forEach(p => inputParteien.value.push(neuePartei(p.name, p.sitzeHauptorgan, p.ag, p.stimmen)))
+    }
+
+    function prepareForJson() {
+        return {
+            original: {
+                config: startConfig,
+                parteien: data["ohneAG"].parteien.map(({ name, sitzeHauptorgan, ag, stimmen }) => ({ name, sitzeHauptorgan, ag, stimmen }))
+            },
+        }
+    }
+
     return {
         data,
         startConfig,
 
         clear,
         loadDefaults,
+        loadFromJson,
+        prepareForJson,
 
         neuePartei,
         updateItem,

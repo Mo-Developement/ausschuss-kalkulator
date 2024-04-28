@@ -21,3 +21,7 @@ export function formatPercent(value) {
 export function formatRank(value) {
     return value + "."
 }
+
+export function padZero(number) {
+    return String(number).padStart(2, '0')
+}
