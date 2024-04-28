@@ -37,7 +37,7 @@ export default {
 
   <TabMenu v-model:activeIndex="activeTab" :model="agTabs" style="width: max-content;" />
 
-  <div style="overflow-x: auto; padding-bottom: 10px; margin-top: 12px;">
+  <div style="overflow-x: auto; padding-bottom: 10px;">
     <Parteien :ohneAg="ohneAg" />
   </div>
 
