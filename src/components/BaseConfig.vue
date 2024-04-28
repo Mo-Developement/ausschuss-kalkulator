@@ -1,6 +1,7 @@
 <script>
 import InputNumber from "primevue/inputnumber"
 import SelectButton from "primevue/selectbutton"
+import Tag from "primevue/tag"
 
 import { pattAufloesungEnum } from "@/store/enums.js"
 import { useState } from "@/store/index.js"
@@ -14,24 +15,33 @@ export default {
     const { startConfig } = useState()
     return { pattAufloesungEnum, startConfig }
   },
-  components: { InputNumber, SelectButton }
+  components: { InputNumber, SelectButton, Tag }
 }
 </script>
 
 <template>
 <form>
   <div class="stacked-input">
-    <label for="groesseHauptorgan">Größe Hauptorgan</label>
+    <label for="groesseHauptorgan">
+      Größe Hauptorgan
+      <Tag v-show="ohneAg" severity="info" value="Schritt 1a" />
+    </label>
     <InputNumber :disabled="!ohneAg" v-model="startConfig.sitzeHauptorgan" inputId="groesseHauptorgan" :min="0" buttonLayout="stacked" showButtons />
   </div>
 
   <div class="stacked-input">
-    <label for="groesseAusschuss">Ausschussgröße</label>
+    <label for="groesseAusschuss">
+      Ausschussgröße
+      <Tag v-show="ohneAg" severity="info" value="Schritt 2a" />
+    </label>
     <InputNumber :disabled="!ohneAg" v-model="startConfig.sitzeAusschuss" inputId="groesseAusschuss" :min="0" buttonLayout="stacked" showButtons />
   </div>
 
   <div class="stacked-input">
-    <span id="pattAufloesung">Pattauflösung</span>
+    <span id="pattAufloesung">
+      Pattauflösung
+      <Tag severity="info" :value="ohneAg ? 'Schritt 2c' : 'Schritt 3b'" />
+    </span>
     <SelectButton v-if="ohneAg" aria-labelledby="pattAufloesung"
       v-model="startConfig.pattAufloesung['ohneAG']" :options="Object.values(pattAufloesungEnum)"
       optionLabel="display" optionValue="value" :allow-empty="false"

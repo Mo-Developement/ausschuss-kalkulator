@@ -1,5 +1,6 @@
 <script>
 import Button from "primevue/button"
+import Tag from "primevue/tag"
 
 import DataBar from "./DataBar.vue"
 import EditDialog from "./EditDialog.vue"
@@ -87,7 +88,7 @@ export default {
       this.editDialogVisible = true
     },
   },
-  components: { Button, DataBar, EditDialog }
+  components: { Button, DataBar, EditDialog, Tag }
 }
 </script>
 
@@ -402,6 +403,19 @@ export default {
       <th></th>
       <th>{{ data.ergebnisse.summeStimmen }}</th>
     </tr>
+
+    <!-- Footerzeile für "Schritte"-Info -->
+    <tr v-show="ohneAg" class="schritte-reihe">
+      <td colspan="2" class="right">
+        <Tag severity="info" value="Schritt 1b" />
+      </td>
+      <td>
+        <Tag severity="info" value="3a" />
+      </td>
+      <td colspan="150" class="right">
+        <Tag severity="info" value="Schritt 1c" />
+      </td>
+    </tr>
   </tfoot>
 </table>
 
@@ -454,6 +468,10 @@ table tbody tr:nth-child(odd) {
   min-width: 12em;
 }
 
+.schritte-reihe {
+  background-color: Canvas;
+}
+
 .relative {
   position: relative;
 }
@@ -462,6 +480,11 @@ table tbody tr:nth-child(odd) {
   position: absolute;
   left: 0;
   top: 0;
+  border: none;
+  background-color: transparent;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
 }
 
 .hidden {
