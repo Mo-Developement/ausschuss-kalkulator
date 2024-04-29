@@ -226,11 +226,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 -----------
 
-The following npm package may be included in this product:
+The following npm packages may be included in this product:
 
  - @vue/devtools-api@6.6.1
+ - vue-drag-scroller@1.8.0
 
-This package contains the following license and notice below:
+These packages each contain the following license and notice below:
 
 MIT
 
