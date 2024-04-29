@@ -261,11 +261,11 @@ function newStateInstance() {
     function loadFromJson(json) {
         const obj = JSON.parse(json)
         const { original: { config: conf } } = obj
-        const { original: { parteien } } = obj
+        const { original: { parteien: neueParteien } } = obj
 
         clear()
         setStartConfig(conf.sitzeHauptorgan, conf.sitzeAusschuss, conf.pattAufloesung["ohneAG"], conf.pattAufloesung["mitAG"])
-        parteien.forEach(p => inputParteien.value.push(neuePartei(p.name, p.sitzeHauptorgan, p.ag, p.stimmen)))
+        neueParteien.forEach(p => inputParteien.value.push(neuePartei(p.name, p.sitzeHauptorgan, p.ag, p.stimmen)))
     }
 
     function prepareForJson() {

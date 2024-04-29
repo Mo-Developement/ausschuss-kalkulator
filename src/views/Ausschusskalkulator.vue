@@ -25,9 +25,6 @@ export default {
     ohneAg() {
       return this.activeTab === 0
     }
-  },
-  mounted() {
-    this.loadDefaults()
   }
 }
 </script>
@@ -35,7 +32,7 @@ export default {
 <template>
   <BaseConfig :ohneAg="ohneAg" />
 
-  <TabMenu v-model:activeIndex="activeTab" :model="agTabs" style="width: max-content;" />
+  <TabMenu v-model:activeIndex="activeTab" :model="agTabs" style="width: max-content; margin-top: 12px;" />
 
   <div v-drag-scroller.onlyX style="overflow-x: auto; padding-bottom: 10px;">
     <Parteien :ohneAg="ohneAg" />
