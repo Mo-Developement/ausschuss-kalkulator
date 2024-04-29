@@ -472,6 +472,10 @@ table tbody tr:nth-child(odd) {
   background-color: Canvas;
 }
 
+.schritte-reihe td {
+  border: none;
+}
+
 .relative {
   position: relative;
 }
