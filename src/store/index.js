@@ -44,7 +44,7 @@ function newStateInstance() {
             stimmen: ref(stimmen),
         }
 
-        neu.proporzgenaueZahlAusschuss = computed(() => neu.sitzeHauptorgan.value / data[agModus].ergebnisse.summeSitzeHauptorgan * startConfig.sitzeAusschuss)
+        neu.proporzgenaueZahlAusschuss = computed(() => neu.sitzeHauptorgan.value / data[agModus].ergebnisse.summeSitzeHauptorgan * startConfig.sitzeAusschuss || 0)
         neu.sicherVertreten = computed(() => neu.proporzgenaueZahlAusschuss.value >= 1 || neu.sitzeHauptorgan.value > (startConfig.sitzeHauptorgan / (1 + startConfig.sitzeAusschuss)))
         neu.agMöglich = computed(() => !(neu.sicherVertreten.value === true || neu.sitzeHauptorgan.value === 0))
         neu.quotenKriterium = computed(() => !Number.isInteger(neu.proporzgenaueZahlAusschuss.value)
