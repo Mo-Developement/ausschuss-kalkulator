@@ -22,26 +22,26 @@ export default {
 <template>
 <form>
   <div class="stacked-input">
-    <label for="groesseHauptorgan">
-      Größe Hauptorgan
+    <div>
+      <label for="groesseHauptorgan">Größe Hauptorgan</label>
       <Tag v-show="ohneAg" severity="info" value="Schritt 1a" />
-    </label>
+    </div>
     <InputNumber :disabled="!ohneAg" v-model="startConfig.sitzeHauptorgan" inputId="groesseHauptorgan" :min="0" buttonLayout="stacked" showButtons />
   </div>
 
   <div class="stacked-input">
-    <label for="groesseAusschuss">
-      Ausschussgröße
+    <div>
+      <label for="groesseAusschuss">Ausschussgröße</label>
       <Tag v-show="ohneAg" severity="info" value="Schritt 2a" />
-    </label>
+    </div>
     <InputNumber :disabled="!ohneAg" v-model="startConfig.sitzeAusschuss" inputId="groesseAusschuss" :min="0" buttonLayout="stacked" showButtons />
   </div>
 
   <div class="stacked-input">
-    <span id="pattAufloesung">
-      Pattauflösung
+    <div>
+      <span id="pattAufloesung">Pattauflösung</span>
       <Tag severity="info" :value="ohneAg ? 'Schritt 2c' : 'Schritt 3b'" />
-    </span>
+    </div>
     <SelectButton v-if="ohneAg" aria-labelledby="pattAufloesung"
       v-model="startConfig.pattAufloesung['ohneAG']" :options="Object.values(pattAufloesungEnum)"
       optionLabel="display" optionValue="value" :allow-empty="false"
@@ -65,5 +65,15 @@ form {
   display: flex;
   flex-direction: column;
   gap: .5rem;
+}
+
+.stacked-input > :first-child {
+  display: flex;
+  align-items: baseline;
+}
+
+.stacked-input > :first-child > :first-child {
+  display: inline-block;
+  margin: .5rem .5rem .5rem 0;
 }
 </style>
