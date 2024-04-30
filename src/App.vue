@@ -4,11 +4,15 @@ import Menubar from 'primevue/menubar'
 
 import { routes } from "@/router.js"
 
-import { useState } from '@/store/index.js'
+import { useState } from "@/store/index.js"
 import { download } from "@/utils/downloader.js"
 
 export default {
   name: "app",
+  created() {
+    const { clear } = useState()
+    clear()
+  },
   setup() {
     const { prepareForJson } = useState()
     return { prepareForJson, routes }
