@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 
+import About from './views/About.vue'
 import Ausschusskalkulator from './views/Ausschusskalkulator.vue'
 import Startseite from './views/Startseite.vue'
 
@@ -15,6 +16,12 @@ const routes = [
         name: 'Ausschusskalkulator',
         icon: 'pi pi-calculator',
         component: Ausschusskalkulator
+    },
+    {
+        path: '/about',
+        name: 'Über',
+        icon: 'pi pi-info-circle',
+        component: About
     }
 ]
 
