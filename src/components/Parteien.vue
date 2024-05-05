@@ -8,7 +8,7 @@ import EditDialog from "./EditDialog.vue"
 import * as fmt from "@/utils/formatter.js"
 
 import { useState } from "@/store/index.js"
-import { sitzStatus, quotientenVerfahrenTabelle } from "@/store/enums.js"
+import { sitzStatus, verfahren } from "@/store/enums.js"
 
 export default {
   name: 'ParteiDaten',
@@ -17,10 +17,12 @@ export default {
   },
   setup() {
     const { deleteItem, clear, loadDefaults, neuePartei, updateItem, data, startConfig } = useState()
+    const quotientenVerfahren = [ verfahren.LAGUE_SCHEPERS, verfahren.D_HONDT ]
+
     return {
       fmt,
       deleteItem, clear, loadDefaults, neuePartei, updateItem, completeData: data, startConfig,
-      quotientenVerfahrenTabelle
+      quotientenVerfahren
     }
   },
   data() {
@@ -119,7 +121,7 @@ export default {
       <th class="th-empty-top-right-corner" colspan="8" v-show="this.style.hn.details"></th>
       
       <!-- Header SLS + Header dH -->
-      <template v-for="{ dataKey, name } of quotientenVerfahrenTabelle" :key="dataKey">
+      <template v-for="{ dataKey, name } of quotientenVerfahren" :key="dataKey">
         <th class="hidden"></th>
         <th class="relative" :class="headerClass(dataKey)" colspan="2">
           <div>
@@ -191,7 +193,7 @@ export default {
       <th v-show="this.style.hn.details" class="header-hn">Patt&shy;gewinn</th>
       
       <!-- Subheader SLS + Subheader dH -->
-      <template v-for="{ dataKey } of quotientenVerfahrenTabelle" :key="dataKey">
+      <template v-for="{ dataKey } of quotientenVerfahren" :key="dataKey">
         <th class="hidden"></th>
         <th :class="headerClass(dataKey)">
           <span class="header-databar">Sitze</span>
@@ -299,7 +301,7 @@ export default {
       </td>
 
       <!-- Daten SLS + Daten dH -->
-      <template v-for="{ dataKey } of quotientenVerfahrenTabelle" :key="dataKey">
+      <template v-for="{ dataKey } of quotientenVerfahren" :key="dataKey">
         <td class="hidden"></td>
         <td :class="(entry[dataKey].qkVerletzt || (!ohneAg && entry[dataKey].verlustLetzterSitz)) && 'false'">
           <DataBar :current="entry[dataKey].sitzeGesamt" :max="data.helper[dataKey].maxSitzeGesamt" colour="green" />
@@ -382,7 +384,7 @@ export default {
       <td v-show="this.style.hn.details"></td>
 
       <!-- Footer SLS + Footer dH-->
-      <template v-for="{ dataKey } of quotientenVerfahrenTabelle" :key="dataKey">
+      <template v-for="{ dataKey } of quotientenVerfahren" :key="dataKey">
         <td class="hidden"></td>
         <td>{{ data.ergebnisse[dataKey].summeSitzeGesamt }}</td>
         <td :class="data.ergebnisse[dataKey].summeSitzeMitPatt != startConfig.sitzeAusschuss && 'false'">
