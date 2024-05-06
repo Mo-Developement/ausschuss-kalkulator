@@ -1,15 +1,15 @@
 import { computed, reactive, ref } from "vue"
 
 import { pattAufloesungEnum, sitzStatus } from "./enums.js"
-import { formatAG } from "@/utils/formatter.js"
+import { formatAGWithMemberNames, formatQuotenkriterium } from "@/utils/formatter.js"
 
-function countOccurences(arr) {
+export function countOccurences(arr) {
     const countMap = new Map();
     arr.forEach((num) => countMap.set(num, (countMap.get(num) || 0) + 1))
     return countMap
 }
 
-function rankDuplicate(countMap) {
+export function rankDuplicate(countMap) {
     const sorted = [...countMap.keys()].sort((a, b) => b - a)
     
     let rank = 1
@@ -47,9 +47,7 @@ function newStateInstance() {
         neu.proporzgenaueZahlAusschuss = computed(() => neu.sitzeHauptorgan.value / data[agModus].ergebnisse.summeSitzeHauptorgan * startConfig.sitzeAusschuss || 0)
         neu.sicherVertreten = computed(() => neu.proporzgenaueZahlAusschuss.value >= 1 || neu.sitzeHauptorgan.value > (startConfig.sitzeHauptorgan / (1 + startConfig.sitzeAusschuss)))
         neu.agMöglich = computed(() => !(neu.sicherVertreten.value === true || neu.sitzeHauptorgan.value === 0))
-        neu.quotenKriterium = computed(() => !Number.isInteger(neu.proporzgenaueZahlAusschuss.value)
-            ? Math.floor(neu.proporzgenaueZahlAusschuss.value) + " oder " + Math.ceil(neu.proporzgenaueZahlAusschuss.value)
-            : neu.proporzgenaueZahlAusschuss)
+        neu.quotenKriterium = computed(() => formatQuotenkriterium(Math.floor(neu.proporzgenaueZahlAusschuss.value), Math.ceil(neu.proporzgenaueZahlAusschuss.value)))
 
         neu.hn = {}
         neu.hn.sitzeGanz = computed(() => Math.floor(neu.proporzgenaueZahlAusschuss.value))
@@ -184,9 +182,8 @@ function newStateInstance() {
         return Object.entries(groupedByAgId)
             .toSorted((a, b) => +a[0] - (+b[0]))  // AGs nach Nummer sortieren
             .map(([id, parteien]) => {
-                const agNamen = parteien.map(p => p.name.substring(0, 3)).join(" ")
                 return neuePartei(
-                    `${formatAG(id)} [${agNamen}]`,
+                    formatAGWithMemberNames(id, parteien.map(p => p.name)),
                     parteien.reduce((sum, p) => sum + p.sitzeHauptorgan, 0),
                     null,
                     0,

@@ -126,7 +126,7 @@ export default {
         <th class="relative" :class="headerClass(dataKey)" colspan="2">
           <div>
             <button class="expand-button" @click="style[dataKey].details = !style[dataKey].details">{{ this.style[dataKey].details ? "-" : "+" }}</button>
-            <span v-html="name"></span>
+            <span>{{ name }}</span>
           </div>
         </th>
         <th class="relative" :class="headerClass(dataKey)" v-show="this.style[dataKey].details" :colspan="this.style[dataKey].quotientenDetails === true ? 19 : 1">
@@ -236,8 +236,8 @@ export default {
       <td class="right">
         {{ entry.sitzeHauptorgan }}
       </td>
-      <td v-show="ohneAg" :class="!entry.agMöglich && 'keine-ag'">
-        {{ fmt.formatAG(entry.ag).replace(/ /g, '&nbsp;') }}
+      <td v-show="ohneAg" :class="!entry.agMöglich && 'keine-ag'" class="no-break">
+        {{ fmt.formatAG(entry.ag) }}
       </td>
       <td>
         <DataBar :current="entry.proporzgenaueZahlAusschuss" :max="data.helper.maxProporzgenaueZahlAusschuss" :decimals="2" />
@@ -436,6 +436,10 @@ td, th {
   padding: 6px;
 }
 
+tbody td {
+  height: 3rem;
+}
+
 thead th, tfoot td {
   border: 1px solid var(--table-row-odd);
 }
@@ -468,6 +472,13 @@ table tbody tr:nth-child(odd) {
 
 .partei-zelle > span {
   min-width: 12em;
+}
+
+.partei-zelle .p-button {
+  padding: 0;
+  border: none;
+  width: 2rem;
+  height: 2rem;
 }
 
 .schritte-reihe {
@@ -524,12 +535,18 @@ table tbody tr:nth-child(odd) {
   font-weight: bold;
 }
 
+.no-break {
+  white-space: nowrap;
+}
+
 .correct {
   background-color: var(--green-400);
+  color: black;
 }
 
 .patt {
   background-color: var(--yellow-400);
+  color: black;
 }
 
 .false {
