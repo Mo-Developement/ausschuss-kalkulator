@@ -22,15 +22,16 @@ function newStateInstance() {
      * @param {number|null} [stimmen=null] - Anzahl der Wählerstimmen - für AG: null
      * @param {number|null} [ag=null] - ID der angehörigen Ausschussgemeinschaft
      * @param {number} [plus=0] - zusätzliche Ausschusssitze für die Partei
-     * @param {number} [minus=0] - AUstritte aus der Partei
+     * @param {number} [minus=0] - Austritte aus der Partei
+     * @param {string} [nameNeu=''] - evtl. neuer Name aus Schritt 2
      */
-    function neuePartei(schritt, originID, name, sitzeHauptorgan=0, stimmen=0, ag=null, plus=0, minus=0) {
+    function neuePartei(schritt, originID, name, sitzeHauptorgan=0, stimmen=0, ag=null, plus=0, minus=0, nameNeu='') {
         const neu = {
             id: count,
             originID: originID,
 
             name: ref(name),
-            nameNeu: ref(''),
+            nameNeu: ref(nameNeu),
             sitzeHauptorgan: schritt === schritte.VERSCHIEBUNG ? computed(() => sitzeHauptorgan + plus - minus) : ref(sitzeHauptorgan),
             stimmen: ref(stimmen),
             ag: ref(ag),
@@ -135,14 +136,14 @@ function newStateInstance() {
 
         // Schritt 2
         data[schritte.VERSCHIEBUNG].parteien = computed(() => data[schritte.START].parteien
-            .map(p => reactive(neuePartei(schritte.VERSCHIEBUNG, p.id, p.name, p.sitzeHauptorgan, p.stimmen, p.ag, p.sitzePlus, p.sitzeMinus)))
+            .map(p => reactive(neuePartei(schritte.VERSCHIEBUNG, p.id, p.name, p.sitzeHauptorgan, p.stimmen, p.ag, p.sitzePlus, p.sitzeMinus, p.nameNeu)))
             .concat(reactive(zusatzParteien.value)))
 
         data[schritte.VERSCHIEBUNG].helper.maxProporzgenaueZahlAusschuss = computed(() => data[schritte.VERSCHIEBUNG].parteien.reduce((max, p) => Math.max(max, p.proporzgenaueZahlAusschuss), 0))
 
         // Schritt 3
         data[schritte.AG].parteien = computed(() => data[schritte.VERSCHIEBUNG].parteien
-            .map(p => reactive(neuePartei(schritte.AG, p.originID === null ? p.id : p.originID, p.name, p.ag === null ? p.sitzeHauptorgan : 0, p.stimmen, p.ag, p.sitzePlus, p.sitzeMinus)))
+            .map(p => reactive(neuePartei(schritte.AG, p.originID === null ? p.id : p.originID, p.name, p.ag === null ? p.sitzeHauptorgan : 0, p.stimmen, p.ag, p.sitzePlus, p.sitzeMinus, p.nameNeu)))
             .concat(reactive(ags.value)))
 
         data[schritte.AG].helper.raengeAzAktuell    = computed(() => rankDuplicate(countOccurences(data[schritte.AG].parteien.map(p => p.azAktuell))))
@@ -186,14 +187,11 @@ function newStateInstance() {
     }
     
     function updatePartei(id, property, value) {
-        console.log(id, property, value)
         let idx = inputParteien.value.findIndex(item => item.id === id)
-        console.log(idx)
         if (idx !== -1) {
             inputParteien.value[idx][property] = value
         } else {
             idx = zusatzParteien.value.findIndex(item => item.id === id)
-            console.log(idx)
             zusatzParteien.value[idx][property] = value
         }
     }
@@ -261,9 +259,9 @@ function newStateInstance() {
         clear()
         setStartConfig(conf.sitzeAusschuss, conf.verfahren, conf.pattAufloesung)
         neueParteien.forEach(p => inputParteien.value.push(
-            neuePartei(schritte.START, null, p.name, p.sitzeHauptorgan, p.stimmen, p.ag, p.sitzePlus, p.sitzeMinus)))
+            neuePartei(schritte.START, null, p.name, p.sitzeHauptorgan, p.stimmen, p.ag, p.sitzePlus, p.sitzeMinus, p.nameNeu)))
         neueZusatzParteien.forEach(p => zusatzParteien.value.push(
-            neuePartei(schritte.VERSCHIEBUNG, null, p.name, p.sitzeHauptorgan, p.stimmen, p.ag, p.sitzePlus, p.sitzeMinus)))
+            neuePartei(schritte.VERSCHIEBUNG, null, p.name, p.sitzeHauptorgan, p.stimmen, p.ag, p.sitzePlus, p.sitzeMinus, p.nameNeu)))
 
         randomize()
     }
@@ -272,8 +270,8 @@ function newStateInstance() {
         return {
             prototyp: {
                 config: startConfig,
-                parteien: inputParteien.value.map(({ name, stimmen, sitzeHauptorgan, sitzePlus, sitzeMinus, ag }) => ({ name, stimmen, sitzeHauptorgan, sitzePlus, sitzeMinus, ag })),
-                zusatzParteien: zusatzParteien.value.map(({ name, stimmen, sitzeHauptorgan, sitzePlus, sitzeMinus, ag }) => ({ name, stimmen, sitzeHauptorgan, sitzePlus, sitzeMinus, ag }))
+                parteien: inputParteien.value.map(({ name, stimmen, sitzeHauptorgan, nameNeu, sitzePlus, sitzeMinus, ag }) => ({ name, stimmen, sitzeHauptorgan, nameNeu, sitzePlus, sitzeMinus, ag })),
+                zusatzParteien: zusatzParteien.value.map(({ name, stimmen, sitzeHauptorgan, nameNeu, sitzePlus, sitzeMinus, ag }) => ({ name, stimmen, sitzeHauptorgan, nameNeu, sitzePlus, sitzeMinus, ag }))
             }
         }
     }

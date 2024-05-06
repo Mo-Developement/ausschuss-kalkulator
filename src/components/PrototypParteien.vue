@@ -11,7 +11,7 @@ import DataBar from "./DataBar.vue"
 import * as fmt from "@/utils/formatter.js"
 
 import { useState } from "@/store/prototypIndex.js"
-import { pattAufloesungEnum, sitzStatus, verfahren } from "@/store/enums"
+import { agDropdownOptions, pattAufloesungEnum, sitzStatus, verfahren } from "@/store/enums"
 
 export default {
   name: "PrototypParteiDaten",
@@ -22,7 +22,7 @@ export default {
       clear, loadDefaults, randomize,
       addPartei, updatePartei, deleteItem,
       fmt,
-      pattAufloesungEnum, verfahren
+      agDropdownOptions, pattAufloesungEnum, verfahren
     }
   },
   data() {
@@ -52,9 +52,12 @@ export default {
       this.$refs.editPanel.show(event)
       this.selected.id = id
       this.selected.property = property
-      if (property === 'name') {
+      if (property === 'name' || property === 'nameNeu') {
         this.activeField = 'text'
         this.textData = currentData
+      } else if (property === 'ag') {
+        this.activeField = 'dd'
+        this.numData = currentData
       } else {
         this.activeField = 'num'
         this.numData = currentData
@@ -74,6 +77,7 @@ export default {
 <OverlayPanel ref="editPanel">
   <InputText v-model="textData" v-show="activeField === 'text'" ref="ip1" :min="0" @keydown.enter="commitParteiUpdate" />
   <InputNumber v-model="numData" v-show="activeField === 'num'" ref="ip2" @keydown.enter="commitParteiUpdate" />
+  <Dropdown v-model="numData" v-show="activeField === 'dd'" @change="commitParteiUpdate" :options="agDropdownOptions" optionLabel="name" optionValue="code" show-clear aria-labelledby="ag" />
 </OverlayPanel>
 
 <div class="root">
@@ -102,16 +106,16 @@ export default {
     </thead>
     <tbody>
       <tr v-for="entry in data[schritte.START].parteien" :key="entry.id">
-        <td @click="showEditPanel($event, entry.name, entry.id, 'name')">
+        <td @click="showEditPanel($event, entry.name, entry.id, 'name')" class="input">
           <div class="partei-zelle">
             <Button icon="pi pi-trash" severity="secondary" rounded outlined aria-label="Löschen" @click="deleteItem(entry.id)" />
             <span>{{ entry.name }}</span>
           </div>
         </td>
-        <td class="right" @click="showEditPanel($event, entry.stimmen, entry.id, 'stimmen')">
+        <td @click="showEditPanel($event, entry.stimmen, entry.id, 'stimmen')" class="input right">
           {{ entry.stimmen }}
         </td>
-        <td>
+        <td @click="showEditPanel($event, entry.sitzeHauptorgan, entry.id, 'sitzeHauptorgan')" class="input">
           <DataBar :current="entry.sitzeHauptorgan" :max="data[schritte.START].helper.maxSitzeHauptorgan" colour="blue" />
         </td>
       </tr>
@@ -138,11 +142,12 @@ export default {
         <th colspan="4">
           <div class="description">
             <p>
-              Hier können Sie Änderungen der Stärkeverhältnisse im Laufe der Wahlzeit eingetragen werden, beispielsweise Fraktionswechsel oder auch Austritt und Tätigkeit als Einzelgänger.<br>
+              Hier können Sie Änderungen der Stärkeverhältnisse im Laufe der Wahlzeit eingetragen werden, beispielsweise Fraktions<wbr>
+              wechsel oder auch Austritt und Tätigkeit als Einzelgänger. Der Name einer Partei kann auch "überschrieben" werden.<br>
               Austritte sind bei "Minus", Eintritte bei "Plus" zu definieren. Die Gesamtzahl aller Sitze muss unverändert bleiben.
             </p>
             <p>
-              Analog zu Schritt 1 könenn neue Einzelgänger hinzugefügt werden und Verteilungen erfasst werden.
+              Analog zu Schritt 1 können neue Einzelgänger hinzugefügt, Alternativnamen vergeben und Verteilungen erfasst werden.
             </p>
           </div>
         </th>
@@ -157,7 +162,7 @@ export default {
         </th>
       </tr>
       <tr class="grey no-break">
-        <th>Name</th>
+        <th>NameNeu</th>
         <th>Plus</th>
         <th>Minus</th>
         <th>Sitze HO</th>
@@ -170,14 +175,18 @@ export default {
     </thead>
     <tbody>
       <tr v-for="entry in data[schritte.VERSCHIEBUNG].parteien" :key="entry.id">
-        <td @click="entry.originID === null && showEditPanel($event, entry.name, entry.originID || entry.id, 'name')">
+        <td @click="showEditPanel($event, entry.nameNeu || entry.name, entry.originID || entry.id, 'nameNeu')" class="input">
           <div class="partei-zelle">
             <Button v-if="entry.originID === null" icon="pi pi-trash" severity="secondary" rounded outlined aria-label="Löschen" @click="deleteItem(entry.id)" />
             <span>{{ entry.nameNeu || entry.name }}</span>
           </div>
         </td>
-        <td @click="showEditPanel($event, entry.sitzePlus, entry.originID || entry.id, 'sitzePlus')" class="centered">{{ entry.sitzePlus !== 0 ? entry.sitzePlus : '' }}</td>
-        <td @click="showEditPanel($event, entry.sitzeMinus, entry.originID || entry.id, 'sitzeMinus')" class="centered">{{ entry.sitzeMinus !== 0 ? entry.sitzeMinus : '' }}</td>
+        <td @click="showEditPanel($event, entry.sitzePlus, entry.originID || entry.id, 'sitzePlus')" class="input centered">
+          {{ entry.sitzePlus !== 0 ? entry.sitzePlus : '' }}
+        </td>
+        <td @click="showEditPanel($event, entry.sitzeMinus, entry.originID || entry.id, 'sitzeMinus')" class="input centered">
+          {{ entry.sitzeMinus !== 0 ? entry.sitzeMinus : '' }}
+        </td>
         <td>
           <DataBar :current="entry.sitzeHauptorgan" :max="data[schritte.VERSCHIEBUNG].helper.maxSitzeHauptorgan" colour="blue" />
         </td>
@@ -197,7 +206,9 @@ export default {
     </tbody>
     <tfoot>
       <td colspan="3"></td>
-      <td>{{ data[schritte.VERSCHIEBUNG].ergebnisse.summeSitzeHauptorgan }}</td>
+      <td :class="(data[schritte.VERSCHIEBUNG].ergebnisse.summeSitzeHauptorgan === data[schritte.START].ergebnisse.summeSitzeHauptorgan) ? 'correct' : 'false'">
+        {{ data[schritte.VERSCHIEBUNG].ergebnisse.summeSitzeHauptorgan }}
+      </td>
     </tfoot>
   </table>
 
@@ -287,7 +298,8 @@ export default {
     <tbody>
       <tr v-for="entry in data[schritte.AG].parteien" :key="entry.id">
         <td>{{ entry.nameNeu || entry.name }}</td>
-        <td @click="showEditPanel($event, entry.ag, entry.originID || entry.id, 'ag')" :class="(entry.sicherDrin || entry.originID === null) && 'keine-ag'" class="no-break">
+        <td @click="showEditPanel($event, entry.ag, entry.originID || entry.id, 'ag')"
+          :class="(entry.sicherDrin || entry.originID === null) ? 'keine-ag' : 'input'" class="no-break">
           {{ fmt.formatAG(entry.ag) }}
         </td>
         <td>
@@ -392,6 +404,12 @@ tfoot td {
 .p-selectbutton {
   display: flex;
   width: max-content;
+}
+
+.input {
+  cursor: cell;
+  background-color: var(--yellow-100);
+  color: black;
 }
 
 .sitz {
