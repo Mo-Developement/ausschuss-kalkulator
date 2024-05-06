@@ -32,11 +32,16 @@ function newStateInstance() {
 
             name: ref(name),
             nameNeu: ref(nameNeu),
-            sitzeHauptorgan: schritt === schritte.VERSCHIEBUNG ? computed(() => sitzeHauptorgan + plus - minus) : ref(sitzeHauptorgan),
             stimmen: ref(stimmen),
             ag: ref(ag),
-            sitzePlus: plus,
-            sitzeMinus: minus
+            sitzePlus: ref(plus),
+            sitzeMinus: ref(minus)
+        }
+
+        if (schritt === schritte.START) {
+            neu.sitzeHauptorgan = ref(sitzeHauptorgan)
+        } else {
+            neu.sitzeHauptorgan = computed(() => sitzeHauptorgan + neu.sitzePlus.value - neu.sitzeMinus.value)
         }
 
         if (schritt === schritte.VERSCHIEBUNG || schritt === schritte.AG) {
