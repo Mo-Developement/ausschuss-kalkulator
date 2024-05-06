@@ -8,6 +8,7 @@ rm $OUTPUT_FILE
 ./node_modules/.bin/generate-license-file --input package-lock.json --output $TMP_FILE
 
 echo """Favicon created using 'Seats icons created by Made by Made Premium - Flaticon'
+https://www.flaticon.com/free-icons/seats
 
 -----------
 
