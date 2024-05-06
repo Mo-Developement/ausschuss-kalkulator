@@ -1,3 +1,5 @@
+import { formatAG } from "@/utils/formatter"
+
 function SelectItem(value, display) {
     this.value = value;
     this.display = display;
@@ -24,3 +26,7 @@ export const agTabs = Object.freeze([
     { label: "ohne AG", icon: "pi pi-user" },
     { label: "mit AG", icon: "pi pi-users" }
 ])
+
+export const agDropdownOptions = Object.freeze(
+    Array.from({ length: 4 }, (_, i) => ({ name: `${formatAG(i+1)}`, code: i + 1}))
+)

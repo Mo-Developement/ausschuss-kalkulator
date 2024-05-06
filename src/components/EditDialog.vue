@@ -5,7 +5,7 @@ import Dropdown from 'primevue/dropdown'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
 
-import { formatAG } from '@/utils/formatter.js'
+import { agDropdownOptions } from '@/store/enums'
 
 export default {
   name: 'EditDialog',
@@ -14,8 +14,7 @@ export default {
     isNew: Boolean
   },
   setup() {
-    const ags = Array.from({ length: 4 }, (_, i) => ({ name: `${formatAG(i+1)}`, code: i + 1}))
-    return { ags }
+    return { agDropdownOptions }
   },
   data() {
     return {
@@ -58,7 +57,7 @@ export default {
     <label for="stimmen">Stimmen</label>
     <InputNumber id="stimmen" v-model="partei.stimmen" :min="0" show-buttons />
     <span id="ag">Ausschussgemeinschaft</span>
-    <Dropdown v-model="partei.ag" :options="ags" optionLabel="name" optionValue="code" show-clear aria-labelledby="ag" />
+    <Dropdown v-model="partei.ag" :options="agDropdownOptions" optionLabel="name" optionValue="code" show-clear aria-labelledby="ag" />
   </form>
   <div class="buttons">
     <Button type="button" severity="secondary" @click="close">Abbrechen</Button>
