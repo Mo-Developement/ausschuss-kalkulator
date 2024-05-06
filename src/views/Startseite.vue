@@ -4,12 +4,14 @@ import Toast from "primevue/toast"
 
 import router from "@/router.js"
 import { useState } from "@/store/index.js"
+import { useState as usePrototypeState } from "@/store/prototypIndex.js"
 
 export default {
   name: "StartSeite",
   setup() {
     const { loadFromJson} = useState()
-    return { loadFromJson }
+    const { loadFromJson: loadPrototypFromJson } = usePrototypeState()
+    return { loadFromJson, loadPrototypFromJson }
   },
   data() {
     return {
@@ -25,6 +27,7 @@ export default {
       reader.addEventListener("load", () => {
         try {
           this.loadFromJson(reader.result)
+          this.loadPrototypFromJson(reader.result)
           router.push("/kalkulator")
         } catch (e) {
           console.error(e)
