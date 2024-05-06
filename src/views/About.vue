@@ -59,8 +59,8 @@ along with this program.  If not, see https://www.gnu.org/licenses/.
   Weitere Lizenzbedingungen sowie Copyright-Hinweise, die Teile der Software betreffen, können im Folgenden eingesehen werden:
 </p>
 
-<Panel toggleable style="max-width: 900px;">
-  <pre>
+<Panel toggleable style="max-width: 900px;" header=" ">
+  <pre v-drag-scroller.onlyX class="license">
 Favicon created using 'Seats icons created by Made by Made Premium - Flaticon'
 https://www.flaticon.com/free-icons/seats
 
@@ -542,6 +542,15 @@ This file was generated with the generate-license-file npm package!
 https://www.npmjs.com/package/generate-license-file
   </pre>
 </Panel>
-
-
 </template>
+
+<style scoped>
+pre {
+  overflow-x: auto;
+}
+
+.license {
+  font-size: 13px;
+  cursor: move;
+}
+</style>
