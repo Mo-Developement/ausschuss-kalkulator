@@ -13,7 +13,8 @@ export default {
   },
   data() {
     return {
-      version: process.env.PROJECT_VERSION
+      version: process.env.PROJECT_VERSION,
+      offlineNotice: process.env.VUE_APP_BUILD_MODE === "offline" ? " (offline)" : ""
     }
   },
   methods: {
@@ -42,7 +43,7 @@ export default {
 
 <template>
 <Toast />
-<h1>Ausschusskalkulator <span class="version">v. {{ version }}</span></h1>
+<h1>Ausschusskalkulator <span class="version">v. {{ version }}{{ offlineNotice }}</span></h1>
 
 <p>
   Dies ist eine Re-Implementierung des HföD-Auschusskalkulators als Webanwendung. Einzige Voraussetzung zur Nutzung ist ein
