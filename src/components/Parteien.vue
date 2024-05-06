@@ -555,7 +555,7 @@ table tbody tr:nth-child(odd) {
 
 .keine-ag {
   background-clip: content-box;
-  background-color: var(--surface-200);
+  background-color: var(--surface-400);
 }
 
 .header-info {

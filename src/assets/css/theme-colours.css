@@ -6,7 +6,7 @@
 
     --table-header: var(--gray-400);
     --table-cell-separator: #000000;
-    --table-row-odd: var(--surface-50);
+    --table-row-odd: var(--surface-100);
     --table-row-even: #FFFFFF;
 
     --highlight-hn: #4472C4;

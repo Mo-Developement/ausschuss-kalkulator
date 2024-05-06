@@ -44,17 +44,23 @@ export default {
 
   <TabMenu v-model:activeIndex="activeTab" :model="agTabs" style="width: max-content; margin-top: 12px;" />
   
-  <div v-drag-scroller.onlyX style="overflow-x: auto; padding-bottom: 10px;">
+  <div v-drag-scroller.onlyX class="editor">
     <Parteien :ohneAg="ohneAg" />
   </div>
 </template>
 
-<style scoped>
+<style>
 .toolbar {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 1rem;
+}
+
+.editor {
+  overflow-x: auto;
+  cursor: move;
+  padding-bottom: 10px;
 }
 </style>

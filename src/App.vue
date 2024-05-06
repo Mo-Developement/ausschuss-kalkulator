@@ -83,6 +83,6 @@ export default {
 }
 
 main {
-  margin-top: 24px;
+  margin: 24px;
 }
 </style>

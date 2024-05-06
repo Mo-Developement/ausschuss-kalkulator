@@ -29,7 +29,7 @@ export default {
     <SplitButton label="Beispiel laden" @click="loadDefaults" severity="secondary" :model="buttonActions" :menuButtonProps="{'aria-label': 'mehr Aktionen'}" />
   </div>
 
-  <div v-drag-scroller.onlyX style="overflow-x: auto; padding-bottom: 10px;">
+  <div v-drag-scroller.onlyX class="editor">
     <PrototypParteien />
   </div>
 </template>
