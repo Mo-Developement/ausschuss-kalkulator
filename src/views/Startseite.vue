@@ -65,12 +65,27 @@ export default {
 
 <p>
   Falls Sie diese Anwendung bereits verwendet haben, können Sie mithilfe der folgenden Schaltfläche die json-Datei
-  mit Ihren Eingaben laden und werden im Anschluss weitergeleitet.
+  mit Ihren Eingaben laden und werden im Anschluss weitergeleitet.<br>
 </p>
 
 <div class="upload">
   <FileUpload mode="basic" :auto="true" accept="application/json" chooseLabel="Eingaben laden" customUpload @uploader="uploadInput" />
 </div>
+
+<h2>Tipps</h2>
+
+<ul>
+  <li>
+    In den Kalkulatoren sowie den Lizenzhinweisen können Sie durch Drücken und anschließendes horizontales Ziehen der linken
+    Maustaste die Ansicht nach links bzw. rechts verschieben, sofern die Bildschirmbreite nicht mehr zur Darstellung ausreicht.
+  </li>
+  <li>
+    In den Kalkulatoren können Sie mit dem Knopf rechts oben ein Beispiel laden oder Ihre Eingaben löschen.
+  </li>
+  <li>
+    Zur augenfreundlicheren Benutzung bei dunklen Lichtverhältnissen ist rechts oben im Fenster ein sog. "Darkmode" verfügbar.
+  </li>
+</ul>
 </template>
 
 <style scoped>

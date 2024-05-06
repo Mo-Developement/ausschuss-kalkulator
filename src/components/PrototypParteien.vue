@@ -89,10 +89,7 @@ export default {
               Tagen Sie hier das amtliche Wahlergebnis ein. Wenn Sie zur Pattauflösung auf die Stimmenanzahl zurückgreifen wollen, muss diese hier auch eingetragen werden.
             </p>
             <p>
-              Wählen Sie "neue Partei" um eine weitere hinzuzufügen. Durch Klick auf den Namen/Stimmen/Sitze HO kann dieser bearbeitet werden und mit Drücken der Enter-Taste im Feld bestätigt werden.
-            </p>
-            <p>
-              Analog dazu könenn neue Einzelgänger hinzugefügt werden, Verteilungen erfasst werden und die AGs erstellt werden.
+              Wählen Sie "neue Partei" um eine weitere hinzuzufügen. Durch Klick auf deren Namen/<wbr>Stimmen/<wbr>Sitze HO kann die Eigenschaft bearbeitet werden und mit Drücken der Enter-Taste im Eingabefeld bestätigt werden.
             </p>
           </div>
         </th>
@@ -143,6 +140,9 @@ export default {
             <p>
               Hier können Sie Änderungen der Stärkeverhältnisse im Laufe der Wahlzeit eingetragen werden, beispielsweise Fraktionswechsel oder auch Austritt und Tätigkeit als Einzelgänger.<br>
               Austritte sind bei "Minus", Eintritte bei "Plus" zu definieren. Die Gesamtzahl aller Sitze muss unverändert bleiben.
+            </p>
+            <p>
+              Analog zu Schritt 1 könenn neue Einzelgänger hinzugefügt werden und Verteilungen erfasst werden.
             </p>
           </div>
         </th>
@@ -223,6 +223,9 @@ export default {
           <div class="description">
             <p>
               Alle Parteien/<wbr>Gruppierungen/<wbr>Einzelgänger, die nicht SICHER im Ausschuss vertreten sind, können hier als Mitglied einer Ausschussgemeinschaft definiert werden. Somit hat jeder, der THEORETISCH einen Ausschusssitz verlieren könnte das Recht, selbst an einer Ausschussgemeinschaft teilzunehmen.
+            </p>
+            <p>
+              Die Auswahl der AG erfolgt durch Klick auf das zugehörige Feld der Partei und anschließende Selektion.
             </p>
           </div>
         </th>
