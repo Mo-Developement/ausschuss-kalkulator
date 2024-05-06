@@ -15,9 +15,9 @@ export const sitzStatus = Object.freeze({
 })
 
 export const verfahren = Object.freeze({
+    D_HONDT:        { dataKey: "dh", name: "d'Hondt" },
     HARE_NIEMEYER:  { dataKey: "hn", name: "Hare/Niemeyer" },
-    LAGUE_SCHEPERS: { dataKey: "sls", name: "Sainte-Laguë/<wbr>Schepers" },
-    D_HONDT:        { dataKey: "dh", name: "d'Hondt" }
+    LAGUE_SCHEPERS: { dataKey: "sls", name: "Sainte-Laguë/Schepers" }
 })
 
 export const agTabs = Object.freeze([

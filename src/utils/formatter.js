@@ -2,6 +2,17 @@ export function formatAG(value) {
     return value ? `AG ${value}` : ""
 }
 
+export function formatAGWithMemberNames(id, names) {
+    const members = names.map(p => p.substring(0, 3)).join(" ")
+    return `${formatAG(id)} [${members}]`
+}
+
+export function formatQuotenkriterium(min, max) {
+    return min === max
+        ? `genau ${min}`
+        : `${min} oder ${max}`
+}
+
 export function formatYesNo(value) {
     return value === true ? "ja" : "nein"
 }

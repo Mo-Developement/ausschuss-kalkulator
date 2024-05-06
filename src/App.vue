@@ -5,6 +5,7 @@ import Menubar from 'primevue/menubar'
 import { routes } from "@/router.js"
 
 import { useState } from "@/store/index.js"
+import { useState as usePrototypeState } from "@/store/prototypIndex.js"
 import { download } from "@/utils/downloader.js"
 
 export default {
@@ -12,10 +13,13 @@ export default {
   created() {
     const { clear } = useState()
     clear()
+    const { clear: clearPrototype } = usePrototypeState()
+    clearPrototype()
   },
   setup() {
     const { prepareForJson } = useState()
-    return { prepareForJson, routes }
+    const { prepareForJson: preparePrototypeForJson } = usePrototypeState()
+    return { prepareForJson, preparePrototypeForJson, routes }
   },
   data() {
     return {
@@ -34,7 +38,8 @@ export default {
   methods: {
     async downloadInput() {
       const obj = this.prepareForJson()
-      download(obj)
+      const obj2 = this.preparePrototypeForJson()
+      download(obj, obj2)
     }
   },
   components: { Button, Menubar }
@@ -42,7 +47,7 @@ export default {
 </script>
 
 <template>
-<Menubar :model="routes" :breakpoint="'800px'">
+<Menubar :model="routes" :breakpoint="'750px'">
   <template #item="{ item, props }">
     <RouterLink v-slot="{ href, navigate }" :to="item.path" custom>
       <a :href="href" v-bind="props.action" @click="navigate">

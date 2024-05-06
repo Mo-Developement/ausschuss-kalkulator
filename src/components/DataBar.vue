@@ -21,6 +21,7 @@ export default {
     computedColour() {
       let computedColour = 'var(--gray-500)'
       switch (this.colour) {
+        case 'blue': computedColour = 'var(--blue-400)'; break;
         case 'green': computedColour = 'var(--green-500)'; break;
         case 'yellow': computedColour = 'var(--yellow-400)'; break;
       }
