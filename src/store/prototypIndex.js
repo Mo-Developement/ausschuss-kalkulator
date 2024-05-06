@@ -185,9 +185,9 @@ function newStateInstance() {
     
     function addPartei(isStartPartei) {
         if (isStartPartei) {
-            inputParteien.value.push(neuePartei(schritte.START, null, '---'))
+            inputParteien.value.push(neuePartei(schritte.START, null, ''))
         } else {
-            zusatzParteien.value.push(neuePartei(schritte.VERSCHIEBUNG, null, '---'))
+            zusatzParteien.value.push(neuePartei(schritte.VERSCHIEBUNG, null, ''))
         }
     }
     
