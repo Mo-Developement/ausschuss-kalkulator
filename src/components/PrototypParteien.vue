@@ -48,7 +48,6 @@ export default {
       return ''
     },
     showEditPanel(event, currentData, id, property) {
-      console.log(id)
       this.$refs.editPanel.show(event)
       this.selected.id = id
       this.selected.property = property
