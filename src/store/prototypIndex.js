@@ -40,8 +40,10 @@ function newStateInstance() {
 
         if (schritt === schritte.START) {
             neu.sitzeHauptorgan = ref(sitzeHauptorgan)
-        } else {
+        } else if (schritt === schritte.VERSCHIEBUNG) {
             neu.sitzeHauptorgan = computed(() => sitzeHauptorgan + neu.sitzePlus.value - neu.sitzeMinus.value)
+        } else {
+            neu.sitzeHauptorgan = computed(() => neu.ag.value !== null ? 0 : sitzeHauptorgan)
         }
 
         if (schritt === schritte.VERSCHIEBUNG || schritt === schritte.AG) {
@@ -76,7 +78,7 @@ function newStateInstance() {
                 if (data[schritte.AG].parteien.filter(p => p.rangAz <= neu.rangAz.value).length <= startConfig.sitzeAusschuss - summeQkMin)
                     return sitzStatus.SITZ
 
-                if (data[schritte.AG].parteien.filter(p => p.rangAz < neu.rangAz.value).length <= startConfig.sitzeAusschuss - summeQkMin)
+                if (data[schritte.AG].parteien.filter(p => p.rangAz < neu.rangAz.value).length < startConfig.sitzeAusschuss - summeQkMin)
                     return sitzStatus.PATT
 
                 return sitzStatus.LEER
@@ -148,7 +150,7 @@ function newStateInstance() {
 
         // Schritt 3
         data[schritte.AG].parteien = computed(() => data[schritte.VERSCHIEBUNG].parteien
-            .map(p => reactive(neuePartei(schritte.AG, p.originID === null ? p.id : p.originID, p.name, p.ag === null ? p.sitzeHauptorgan : 0, p.stimmen, p.ag, p.sitzePlus, p.sitzeMinus, p.nameNeu)))
+            .map(p => reactive(neuePartei(schritte.AG, p.originID === null ? p.id : p.originID, p.name, p.sitzeHauptorgan, p.stimmen, p.ag, p.sitzePlus, p.sitzeMinus, p.nameNeu)))
             .concat(reactive(ags.value)))
 
         data[schritte.AG].helper.raengeAzAktuell    = computed(() => rankDuplicate(countOccurences(data[schritte.AG].parteien.map(p => p.azAktuell))))
