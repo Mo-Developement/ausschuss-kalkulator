@@ -16,12 +16,14 @@ export default {
     ohneAg: Boolean
   },
   setup() {
-    const { deleteItem, clear, loadDefaults, neuePartei, updateItem, data, startConfig } = useState()
+    const { clear, loadDefaults, defaultParteiDaten, updateItem, deleteItem, data, startConfig } = useState()
     const quotientenVerfahren = [ verfahren.LAGUE_SCHEPERS, verfahren.D_HONDT ]
 
     return {
       fmt,
-      deleteItem, clear, loadDefaults, neuePartei, updateItem, completeData: data, startConfig,
+      clear, loadDefaults,
+      defaultParteiDaten, updateItem, deleteItem,
+      completeData: data, startConfig,
       quotientenVerfahren
     }
   },
@@ -79,13 +81,12 @@ export default {
       }
     },
     showNewDialog() {
-      this.$refs.dialog.setData(this.neuePartei("", 0))
+      this.$refs.dialog.setData(this.defaultParteiDaten())
       this.editDialogNew = true
       this.editDialogVisible = true
     },
     showEditDialog(partei) {
-      const copy = Object.assign({}, partei)
-      this.$refs.dialog.setData(copy)
+      this.$refs.dialog.setData(partei.inputDataSnapshot())
       this.editDialogNew = false
       this.editDialogVisible = true
     },

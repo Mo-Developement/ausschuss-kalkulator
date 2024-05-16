@@ -4,7 +4,7 @@ import { pattAufloesungEnum, sitzStatus } from "./enums.js"
 import { formatAGWithMemberNames, formatQuotenkriterium } from "@/utils/formatter.js"
 
 export function countOccurences(arr) {
-    const countMap = new Map();
+    const countMap = new Map()
     arr.forEach((num) => countMap.set(num, (countMap.get(num) || 0) + 1))
     return countMap
 }
@@ -44,7 +44,20 @@ function newStateInstance() {
             stimmen: ref(stimmen),
         }
 
-        neu.proporzgenaueZahlAusschuss = computed(() => neu.sitzeHauptorgan.value / data[agModus].ergebnisse.summeSitzeHauptorgan * startConfig.sitzeAusschuss || 0)
+        // for passing a copy of the current state to EditDialog when editing a party
+        neu.inputDataSnapshot = () => {
+            return {
+                id:              neu.id,
+                name:            neu.name.value,
+                sitzeHauptorgan: neu.sitzeHauptorgan.value,
+                ag:              neu.ag.value,
+                stimmen:         neu.stimmen.value
+            }
+        }
+
+        neu.proporzgenaueZahlAusschuss = computed(() => data[agModus].ergebnisse.summeSitzeHauptorgan === 0
+            ? 0 // 0 / 0 -> 0
+            : neu.sitzeHauptorgan.value / data[agModus].ergebnisse.summeSitzeHauptorgan * startConfig.sitzeAusschuss)
         neu.sicherVertreten = computed(() => neu.proporzgenaueZahlAusschuss.value >= 1 || neu.sitzeHauptorgan.value > (startConfig.sitzeHauptorgan / (1 + startConfig.sitzeAusschuss)))
         neu.agMöglich = computed(() => !(neu.sicherVertreten.value === true || neu.sitzeHauptorgan.value === 0))
         neu.quotenKriterium = computed(() => formatQuotenkriterium(Math.floor(neu.proporzgenaueZahlAusschuss.value), Math.ceil(neu.proporzgenaueZahlAusschuss.value)))
@@ -59,7 +72,8 @@ function newStateInstance() {
         neu.hn.sitze = computed(() => neu.hn.sitzeGanz.value + (neu.hn.patt.value === false ? neu.hn.restsitz.value : 0))
         neu.hn.losChance = computed(() => neu.hn.patt.value === false ? 0 : (startConfig.sitzeAusschuss - data[agModus].ergebnisse.hn.summeSitze) / data[agModus].ergebnisse.hn.summePatt)
         neu.hn.stimmenGelost = computed(() => (neu.hn.patt.value === true && startConfig.pattAufloesung[agModus] === pattAufloesungEnum.STIMMEN.value)
-            ? neu.stimmen : 0)
+            ? neu.stimmen.value || 0 // keine Angabe (null) -> 0
+            : 0)
         neu.hn.pattgewinn = computed(() => data[agModus].helper.hn.raengeStimmen.get(neu.stimmen.value) <= (startConfig.sitzeAusschuss - data[agModus].ergebnisse.hn.summeSitze))
         neu.hn.pattaufloesung = computed(() => neu.hn.patt.value === false ? 0
             : (startConfig.pattAufloesung[agModus] === pattAufloesungEnum.LOS.value
@@ -67,7 +81,7 @@ function newStateInstance() {
                 : +neu.hn.pattgewinn.value))
 
         if (agModus === "mitAG") {
-            neu.hn.sitzeOhneAG = computed(() => original === null ? null: original.hn.pattaufloesung + original.hn.sitze)
+            neu.hn.sitzeOhneAG = computed(() => original === null ? null : original.hn.pattaufloesung + original.hn.sitze)
             neu.hn.verlustLetzterSitz = computed(() => (neu.hn.sitzeOhneAG.value >= 1) && (neu.hn.sitze.value + neu.hn.pattaufloesung.value) < 1)
         }
 
@@ -154,7 +168,7 @@ function newStateInstance() {
         data[agModus].helper.hn.raengeRest = computed(() => rankDuplicate(data[agModus].helper.hn.vorkommenRaenge))
         data[agModus].helper.hn.summeRestsitzeGesamt = computed(() => data[agModus].parteien.reduce((sum, p) => sum + p.hn.restsitz, 0))
         data[agModus].helper.hn.maxSitze = computed(() => data[agModus].parteien.reduce((max, p) => Math.max(max, p.hn.sitze), 0))
-        data[agModus].helper.hn.raengeStimmen = computed(() => rankDuplicate(countOccurences(data[agModus].parteien.map(p => p.hn.stimmenGelost.value))))
+        data[agModus].helper.hn.raengeStimmen = computed(() => rankDuplicate(countOccurences(data[agModus].parteien.map(p => p.hn.stimmenGelost))))
         data[agModus].helper.hn.maxPattaufloesung = computed(() => data[agModus].parteien.reduce((max, p) => Math.max(max, p.hn.pattaufloesung), 0))
         data[agModus].ergebnisse.hn.summeRestsitze = computed(() => data[agModus].helper.hn.summeRestsitzeGesamt - data[agModus].ergebnisse.hn.summePatt)
     }
@@ -214,11 +228,13 @@ function newStateInstance() {
     }
 
     function updateItem(partei) {
+        const neu = neuePartei(partei.name, partei.sitzeHauptorgan, partei.ag, partei.stimmen)
         const idx = inputParteien.value.findIndex(item => item.id === partei.id)
         if (idx === -1) {
-            inputParteien.value.push(partei)
+            inputParteien.value.push(neu)
         } else {
-            inputParteien.value.splice(idx, 1, partei)
+            neu.id = partei.id
+            inputParteien.value.splice(idx, 1, neu)
         }
     }
 
@@ -242,7 +258,7 @@ function newStateInstance() {
 
         inputParteien.value.push(
             neuePartei("CSU", 20, null, 6543),
-            neuePartei("GRÜNE", 16, null, 5432), // 20 für SL/S
+            neuePartei("GRÜNE", 16, null, 5432),
             neuePartei("FREIE WÄHLER", 10, null, 4321),
             neuePartei("SPD", 8, null, 3210),
             neuePartei("AfD", 4, null, 2345),
@@ -274,6 +290,18 @@ function newStateInstance() {
         }
     }
 
+    // for passing a new object to EditDialog when creating a new party
+    // a valid id gets set when passing the data from EditDialog to `updateItem`
+    function defaultParteiDaten() {
+        return {
+            id:              -1,
+            name:            "",
+            sitzeHauptorgan: 0,
+            ag:              null,
+            stimmen:         null
+        }
+    }
+
     return {
         data,
         startConfig,
@@ -283,7 +311,7 @@ function newStateInstance() {
         loadFromJson,
         prepareForJson,
 
-        neuePartei,
+        defaultParteiDaten,
         updateItem,
         deleteItem
     }
