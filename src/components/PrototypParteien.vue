@@ -30,14 +30,13 @@ export default {
       verfahrenDetails: false,
       pattDetails: false,
 
+      activeField: '',
       textData: '',
       numData: 0,
 
-      activeField: '',
       selected: {
         id: null,
-        property: '',
-        value: null
+        property: ''
       }
     }
   },
@@ -47,25 +46,51 @@ export default {
       if (status === sitzStatus.PATT) return 'patt'
       return ''
     },
-    showEditPanel(event, currentData, id, property) {
-      this.$refs.editPanel.show(event)
-      this.selected.id = id
-      this.selected.property = property
-      if (property === 'name' || property === 'nameNeu') {
-        this.activeField = 'text'
-        this.textData = currentData
-      } else if (property === 'ag') {
-        this.activeField = 'dd'
-        this.numData = currentData
-      } else {
-        this.activeField = 'num'
-        this.numData = currentData
-      }
+    closeEditPanel() {
+      this.$refs.editPanel.hide()
     },
-    commitParteiUpdate(event) {
-      this.updatePartei(this.selected.id, this.selected.property, this.activeField === 'text' ? this.textData : this.numData)
+    showEditPanel(event, currentData, id, property) {
+      this.closeEditPanel()
 
-      this.$refs.editPanel.hide(event)
+      // wait for `closeEditPanel` to be processed
+      this.$nextTick(() => {
+        this.$refs.editPanel.show(event)
+
+        this.selected.id = id
+        this.selected.property = property
+
+        let inputRef = ''
+        if (property === 'name' || property === 'nameNeu') {
+          this.activeField = 'text'
+          this.textData = currentData
+          inputRef = 'inputText'
+        } else if (property === 'ag') {
+          this.activeField = 'dd'
+          this.numData = currentData
+          inputRef = 'inputDropdown'
+        } else {
+          this.activeField = 'num'
+          this.numData = currentData
+          inputRef = 'inputNumber'
+        }
+
+        // the corresponding input element is not mounted yet, so we have to wait for that before we can focus
+        const interval = setInterval(() => {
+          if (this.$refs[inputRef]) {
+            // InputNumber and Dropdown are wrapped inside a parent element, so we have to access its first child
+            // to focus the `<input>` tag directly
+            const input = inputRef === 'inputText'
+              ? this.$refs[inputRef].$el
+              : this.$refs[inputRef].$el.firstElementChild
+            input.focus()
+            clearInterval(interval)
+          }
+        }, 50)
+      })
+    },
+    commitParteiUpdate() {
+      this.updatePartei(this.selected.id, this.selected.property, this.activeField === 'text' ? this.textData : this.numData)
+      this.closeEditPanel()
     }
   },
   components: { Button, DataBar, Dropdown, InputNumber, InputText, OverlayPanel, SelectButton }
@@ -74,9 +99,20 @@ export default {
 
 <template>
 <OverlayPanel ref="editPanel">
-  <InputText v-model="textData" v-show="activeField === 'text'" ref="ip1" :min="0" @keydown.enter="commitParteiUpdate" />
-  <InputNumber v-model="numData" v-show="activeField === 'num'" ref="ip2" @keydown.enter="commitParteiUpdate" />
-  <Dropdown v-model="numData" v-show="activeField === 'dd'" @change="commitParteiUpdate" :options="agDropdownOptions" optionLabel="name" optionValue="code" show-clear aria-labelledby="ag" />
+  <InputText
+    ref="inputText" v-model="textData" v-show="activeField === 'text'"
+    @keydown.enter="commitParteiUpdate" 
+  />
+  <InputNumber
+    ref="inputNumber" v-model="numData" v-show="activeField === 'num'"
+    :min="0" @input="numData = $event.value"
+    @keydown.enter="commitParteiUpdate" 
+  />
+  <Dropdown
+    ref="inputDropdown" v-model="numData" v-show="activeField === 'dd'"
+    :options="agDropdownOptions" optionLabel="name" optionValue="code" show-clear aria-labelledby="ag"
+    @change="commitParteiUpdate"
+  />
 </OverlayPanel>
 
 <div class="root">
@@ -107,7 +143,7 @@ export default {
       <tr v-for="entry in data[schritte.START].parteien" :key="entry.id">
         <td @click="showEditPanel($event, entry.name, entry.id, 'name')" class="input">
           <div class="partei-zelle">
-            <Button icon="pi pi-trash" severity="secondary" rounded outlined aria-label="Löschen" @click="deleteItem(entry.id)" />
+            <Button icon="pi pi-trash" severity="secondary" rounded outlined aria-label="Löschen" @click.stop="deleteItem(entry.id)" />
             <span>{{ entry.name }}</span>
           </div>
         </td>
